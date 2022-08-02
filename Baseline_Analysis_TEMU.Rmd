@@ -1,0 +1,229 @@
+---
+title: "Baseline_Analysis_TEMU"
+author: "Alice Cade"
+date: "01/08/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+require("tidyverse")
+require("here")
+require("readr")
+library("plyr")
+require("dplyr")
+require("ggplot2")
+require("lme4")
+library(data.table)
+library(rstatix)
+library(emmeans)
+require("performance")
+require("insight")
+require("magrittr")
+library(see)
+library(modelbased)
+library("jtools")
+require("kableExtra")
+require("huxtable")
+library(ggbeeswarm)
+library("ggpubr")
+library(reshape2)
+require("WRS2")
+library("ggExtra")
+library("car")
+```
+
+
+### Baseline analysis for healthy, short-term, and long-term mTBI groups
+
+Egocentric Localisation
+Fixation
+Pursuits
+Saccades
+Stroop
+VOR
+
+```{r cols, echo=FALSE}
+myCols2 <- c("#D55E00", "#56B4E9")
+myCols3 <- c("#56B4E9", "#009E73","#D55E00" )
+myCols4 <- c("#D55E00","#009E73", "#56B4E9","#CC79A7")
+```
+
+```{r EgoData, echo=FALSE, message=FALSE, warning=FALSE}
+load("Ego_Healthy.Rda")
+load("Ego_ShortTerm.Rda")
+load("Ego_LongTerm.Rda")
+
+Ego_Healthy$ID <- paste(Ego_Healthy$ID, 1, sep = "_")
+Ego_ShortTerm$ID <- paste(Ego_ShortTerm$ID, 2, sep = "_")
+Ego_ShortTerm <- Ego_ShortTerm[-c(4)]
+Ego_LongTerm$ID <- paste(Ego_LongTerm$ID, 3, sep = "_")
+
+EGOdf <- rbind(Ego_Healthy, Ego_ShortTerm, Ego_LongTerm)
+
+
+leveneTest(Error_X_mm ~ Pre_Post, EGOdf)
+leveneTest(Error_Y_mm ~ Pre_Post, EGOdf) 
+leveneTest(X_Shoot_mm ~ Pre_Post, EGOdf)
+leveneTest(Y_Shoot_mm ~ Pre_Post, EGOdf)
+
+shapiro.test(EGOdf$Error_X_mm)
+shapiro.test(EGOdf$Error_Y_mm)
+shapiro.test(EGOdf$X_Shoot_mm)
+shapiro.test(EGOdf$Y_Shoot_mm)
+
+colNames <- c("ID", "Horizontal Error (mm)", "Vertical Error (mm)","Horizontal Overshoots", "Vertical Overshoots", "Pre_Post", "TBI_Non")
+testTitle <- "Summary Data for Egocentric Localisation"
+source("GetSummaryTables.R")
+GetSummaryTablesCIs(EGOdf, colNames, testTitle) 
+```
+
+
+```{r Visualise_Ego, echo=FALSE}
+# Nice graphic for showing postion head to targ
+library(png)
+library(grid)
+img <- readPNG("Transp_Targ.png")
+g <- rasterGrob(img, width=unit(0.1,"npc"), height=unit(0.13,"npc"), interpolate = FALSE)
+
+
+EGOdf_VIS <-  EGOdf
+EGOdf_VIS$TBI_Non <- gsub('Non', 'Healthy',   EGOdf_VIS$TBI_Non)
+EGOdf_VIS$TBI_Non <- gsub('Short', 'mTBI',   EGOdf_VIS$TBI_Non)
+EGOdf_VIS$TBI_Non <- gsub( 'Long', 'PCS', EGOdf_VIS$TBI_Non)
+EGO_Vis <- ggplot(EGOdf_VIS, aes(Error_X_mm, Error_Y_mm), show.legend = FALSE ) +
+  annotation_custom(rasterGrob(img, interpolate = T), xmin = -30, xmax=30, ymin = -30, ymax=30)  +
+  xlab("Horizontal Error (mm)") + ylab("Vertical Error (mm)")  + #
+  geom_point(aes(colour=fct_rev(TBI_Non)), alpha = 0.4, show.legend = FALSE ) + #, shape=Pre_Post
+  theme_minimal() +
+  #geom_density_2d( aes(color = TBI_Non), alpha = 0.6,bins = 10 , show.legend = FALSE) + #
+  stat_density_2d_filled( aes(color = fct_rev(TBI_Non)), alpha = 0.5,bins = 10 , show.legend = FALSE) + #
+  facet_grid(~ TBI_Non ) +
+  theme(aspect.ratio = 1)
+ggsave("EGO_Vis.png", width = 20, height = 7, units = "cm")
+
+```
+```{r EgoModel_X, echo=FALSE, message=FALSE, warning=FALSE }
+res.aov <- EGOdf %>% anova_test(Error_X_mm ~ TBI_Non)
+par(mfrow = (c(2, 2)))
+plot(res.aov)
+means <- EGOdf %>% group_by(TBI_Non) %>%
+  dplyr::summarise(Mean = mean(Error_X_mm, na.rm = T), SD = sd(Error_X_mm, na.rm = T))
+
+stat.test <- compare_means(
+ Error_X_mm ~ TBI_Non, data = EGOdf,
+ method = "t.test", p.adjust.method = "holm"
+)
+stat.test <- stat.test %>%
+ mutate(y.position = c(250, 300, 350))
+
+H_Ego <- ggboxplot(EGOdf, x = "TBI_Non", y = "Error_X_mm", 
+          color = "TBI_Non", palette = myCols3, add = "jitter",
+          #order = c("Non", "Short", "Long"),
+          ylab = "Horizontal Error (mm)", xlab = " ") + 
+          scale_x_discrete(labels=c("Control","mTBI","PCS")) +
+          geom_hline(yintercept=0, linetype="dashed", color="#5f6061")+
+          theme(legend.position = "none")+
+    stat_pvalue_manual(stat.test, label = "p.adj") +
+   labs( subtitle = get_test_label(res.aov, detailed = TRUE))
+
+```
+
+
+
+```{r EgoModel_Y, echo=FALSE}
+# anova on difference bw Pre groups
+res.aov <- EGOdf %>% anova_test(Error_Y_mm ~ TBI_Non)
+par(mfrow = (c(2, 2)))
+plot(res.aov)
+
+means <- EGOdf %>% group_by(TBI_Non) %>%
+  dplyr::summarise(Mean = mean(Error_Y_mm, na.rm = T), SD = sd(Error_Y_mm, na.rm = T))
+
+stat.test <- compare_means(
+ Error_Y_mm ~ TBI_Non, data = EGOdf,
+ method = "t.test", p.adjust.method = "holm"
+)
+stat.test <- stat.test %>%
+ mutate(y.position = c(250, 300, 350))
+
+V_Ego <- ggboxplot(EGOdf, x = "TBI_Non", y = "Error_Y_mm", 
+          color = "TBI_Non", palette = myCols3, add = "jitter",
+          #order = c("Non", "Short", "Long"),
+          ylab = "Vertical Error (mm)", xlab = " ") + 
+          scale_x_discrete(labels=c("Control","mTBI","PCS")) +
+      geom_hline(yintercept=0, linetype="dashed", color="#5f6061")+
+          theme(legend.position = "none")+
+    stat_pvalue_manual(stat.test, label = "p.adj") +
+   labs(
+    subtitle = get_test_label(res.aov, detailed = TRUE),
+    )
+
+
+EgoPlots <- ggarrange(H_Ego, V_Ego, labels = c("A", "B") ) 
+ggsave("EgoPlots.png", width = 30, height = 15, units = "cm")
+```
+
+
+```{r Ego_Shoots, echo=FALSE}
+# still over and undershooting?
+X_Shoots <- EGOdf#EGOdf[c(1,7)]
+X_Shoots$X_Under <- ifelse(X_Shoots$X_Shoot_mm > 0, 0, 1)
+colnames(X_Shoots)[4] <- "X_Over"
+
+PropXOver <- X_Shoots %>% group_by(ID) %>%
+  dplyr::summarise(PropPos = mean(X_Over), CorrSD = sd(X_Over), Num = n(), CorrSE = CorrSD/n())
+PropXUnder <- X_Shoots %>% group_by(ID) %>%
+  dplyr::summarise(PropPos = mean(X_Under), CorrSD = sd(X_Under), Num = n(), CorrSE = CorrSD/n())
+
+Overs <- data.frame(over=PropXOver$PropPos)
+Unders <- data.frame(under=PropXUnder$PropPos)
+Over_UnderX <- cbind(Overs, Unders)
+Over_UnderX <- Over_UnderX %>% gather(Ov_Und, PropPosition, "over","under") 
+ggplot(Over_UnderX, aes(PropPosition, fill = Ov_Und)) + geom_density(alpha = 0.2) + scale_fill_manual(values=myCols2)
+X_Axis <- prop.test(x=c(sum(X_Shoots$X_Over), sum(X_Shoots$X_Under)), n = c(nrow(X_Shoots), nrow(X_Shoots)), alternative = "less")
+X_Axis
+# Y over/under
+Y_Shoots <- EGOdf
+Y_Shoots$Y_Under <- ifelse(Y_Shoots$Y_Shoot_mm > 0, 0, 1)  
+colnames(Y_Shoots)[5] <- "Y_Over"
+PropYOver <- Y_Shoots %>% group_by(ID) %>%
+  dplyr::summarise(PropPos = mean(Y_Over), CorrSD = sd(Y_Over), Num = n(), CorrSE = CorrSD/n())
+PropYUnder <- Y_Shoots %>% group_by(ID) %>%
+  dplyr::summarise(PropPos = mean(Y_Under), CorrSD = sd(Y_Under), Num = n(), CorrSE = CorrSD/n())
+
+Overs <- data.frame(over=PropYOver$PropPos)
+Unders <- data.frame(under=PropYUnder$PropPos)
+Over_UnderY <- cbind(Overs, Unders)
+Over_UnderY <- Over_UnderY %>% gather(Ov_Und, PropPosition, "over","under") 
+ggplot(Over_UnderY, aes(PropPosition, fill = Ov_Und)) + geom_density(alpha = 0.2) + scale_fill_manual(values=myCols2)
+Y_Axis <- prop.test(x=c(sum(Y_Shoots$Y_Over), sum(Y_Shoots$Y_Under)), n = c(nrow(Y_Shoots), nrow(Y_Shoots)))
+Y_Axis
+
+# Diff Bw TBI and non for X undershoots?
+PropXUnderTBI <- X_Shoots %>% group_by(TBI_Non) %>%
+  dplyr::summarise(PropPos = mean(X_Under), CorrSD = sd(X_Under), Num = n(), CorrSE = CorrSD/115) # Make n number of partic not 
+
+PropXUnderTBI$TBI_Non <- factor(PropXUnderTBI$TBI_Non, levels = c("Non", "Short", "Long"))
+X_OverPlot <- ggplot(PropXUnderTBI  ) + geom_col(aes(x=TBI_Non, y=PropPos), fill=myCols3, alpha = 0.7) + geom_errorbar(aes(x = TBI_Non, ymin = PropPos-CorrSE*1.96, ymax = PropPos + CorrSE*1.96), width=.2, position=position_dodge(.9)) + 
+  labs(x = "", y = "Proportion Horizontal Undershoots") + geom_hline(aes(slope = 0, yintercept = 0.5), linetype="dashed" ) +
+  theme_minimal() + scale_x_discrete(labels=c("Non" = "Control", "Short" = "mTBI", "Long"= "PCS")) 
+
+# differences bw groups
+propX_TBI <- prop.test(x=c((PropXUnderTBI$Num[1] * PropXUnderTBI$PropPos[1]),(PropXUnderTBI$Num[2] * PropXUnderTBI$PropPos[2]), (PropXUnderTBI$Num[3] * PropXUnderTBI$PropPos[3])),n=c(PropXUnderTBI$Num[1],PropXUnderTBI$Num[2] ,PropXUnderTBI$Num[3])) 
+
+# Diff Bw TBI and non for Y undershoots?
+PropYUnderTBI <- Y_Shoots %>% group_by(TBI_Non) %>%
+  dplyr::summarise(PropPos = mean(Y_Under), CorrSD = sd(Y_Under), Num = n(), CorrSE = CorrSD/20)
+ 
+PropYUnderTBI$TBI_Non <- factor(PropYUnderTBI$TBI_Non, levels = c("Non", "Short", "Long"))
+Y_OverPlot <- ggplot(PropYUnderTBI) + geom_col(aes(x=TBI_Non, y=PropPos), fill=myCols3, alpha = 0.7) + geom_errorbar(aes(x = TBI_Non, ymin = PropPos-CorrSE*1.96, ymax = PropPos + CorrSE*1.96), width=.2, position=position_dodge(.9))  + 
+  labs(x = "", y = "Proportion Vertical Undershoots") + geom_hline(aes(slope = 0, yintercept = 0.5), linetype="dashed" ) +
+  theme_minimal() +scale_x_discrete(labels=c("Non" = "Control", "Short" = "mTBI", "Long"= "PCS")) 
+
+propY_TBI <- prop.test(x=c((PropYUnderTBI$Num[1] * PropYUnderTBI$PropPos[1]),(PropYUnderTBI$Num[2] * PropYUnderTBI$PropPos[2]),(PropYUnderTBI$Num[3] * PropYUnderTBI$PropPos[3])),n=c(PropYUnderTBI$Num[1],PropYUnderTBI$Num[2],PropYUnderTBI$Num[3] )) 
+
+EgoOverPlots <- ggarrange(X_OverPlot, Y_OverPlot, labels = c("A", "B") ) 
+ggsave("EgoOverPlots.png", width = 30, height = 15, units = "cm")
+
+```
