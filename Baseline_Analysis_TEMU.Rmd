@@ -49,6 +49,8 @@ myCols3 <- c("#56B4E9", "#009E73","#D55E00" )
 myCols4 <- c("#D55E00","#009E73", "#56B4E9","#CC79A7")
 ```
 
+## Egocentric Localisation
+
 ```{r EgoData, echo=FALSE, message=FALSE, warning=FALSE}
 load("Ego_Healthy.Rda")
 load("Ego_ShortTerm.Rda")
@@ -103,6 +105,7 @@ EGO_Vis <- ggplot(EGOdf_VIS, aes(Error_X_mm, Error_Y_mm), show.legend = FALSE ) 
 ggsave("EGO_Vis.png", width = 20, height = 7, units = "cm")
 
 ```
+
 ```{r EgoModel_X, echo=FALSE, message=FALSE, warning=FALSE }
 res.aov <- EGOdf %>% anova_test(Error_X_mm ~ TBI_Non)
 par(mfrow = (c(2, 2)))
@@ -112,20 +115,20 @@ means <- EGOdf %>% group_by(TBI_Non) %>%
 
 stat.test <- compare_means(
  Error_X_mm ~ TBI_Non, data = EGOdf,
- method = "t.test", p.adjust.method = "holm"
+ method = "t.test"#, p.adjust.method = "holm"
 )
 stat.test <- stat.test %>%
  mutate(y.position = c(250, 300, 350))
 
-H_Ego <- ggboxplot(EGOdf, x = "TBI_Non", y = "Error_X_mm", 
-          color = "TBI_Non", palette = myCols3, add = "jitter",
-          #order = c("Non", "Short", "Long"),
-          ylab = "Horizontal Error (mm)", xlab = " ") + 
-          scale_x_discrete(labels=c("Control","mTBI","PCS")) +
-          geom_hline(yintercept=0, linetype="dashed", color="#5f6061")+
-          theme(legend.position = "none")+
-    stat_pvalue_manual(stat.test, label = "p.adj") +
-   labs( subtitle = get_test_label(res.aov, detailed = TRUE))
+H_Ego <- ggplot(EGOdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long")), y = Error_X_mm, color = TBI_Non)) + 
+  geom_boxplot(outlier.shape = NA)+ 
+  geom_jitter(shape=16, position=position_jitter(0.2), alpha=0.4)+
+  scale_color_manual(values=c( "#D55E00", "#56B4E9", "#009E73")) +
+  scale_x_discrete(labels=c("Control","mTBI","PCS")) +
+  theme_minimal() + theme(legend.position="none")+
+  xlab(" ") + ylab("Horizontal Error (mm)")+
+  geom_hline(yintercept=0, linetype="dashed", color="#5f6061")+
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
 
 ```
 
@@ -142,22 +145,20 @@ means <- EGOdf %>% group_by(TBI_Non) %>%
 
 stat.test <- compare_means(
  Error_Y_mm ~ TBI_Non, data = EGOdf,
- method = "t.test", p.adjust.method = "holm"
+ method = "t.test"#, p.adjust.method = "holm"
 )
 stat.test <- stat.test %>%
  mutate(y.position = c(250, 300, 350))
 
-V_Ego <- ggboxplot(EGOdf, x = "TBI_Non", y = "Error_Y_mm", 
-          color = "TBI_Non", palette = myCols3, add = "jitter",
-          #order = c("Non", "Short", "Long"),
-          ylab = "Vertical Error (mm)", xlab = " ") + 
-          scale_x_discrete(labels=c("Control","mTBI","PCS")) +
-      geom_hline(yintercept=0, linetype="dashed", color="#5f6061")+
-          theme(legend.position = "none")+
-    stat_pvalue_manual(stat.test, label = "p.adj") +
-   labs(
-    subtitle = get_test_label(res.aov, detailed = TRUE),
-    )
+V_Ego <- ggplot(EGOdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long")), y =   Error_Y_mm, color =  TBI_Non)) + 
+  geom_boxplot(outlier.shape = NA)+ 
+  geom_jitter(shape=16, position=position_jitter(0.2), alpha=0.4)+
+  scale_color_manual(values=c( "#D55E00", "#56B4E9", "#009E73")) +
+  scale_x_discrete(labels=c("Control","mTBI","PCS")) +
+  theme_minimal() + theme(legend.position="none")+
+  xlab(" ") + ylab("Vertical Error (mm)")+
+  geom_hline(yintercept=0, linetype="dashed", color="#5f6061")+
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
 
 
 EgoPlots <- ggarrange(H_Ego, V_Ego, labels = c("A", "B") ) 
@@ -200,6 +201,7 @@ ggplot(Over_UnderY, aes(PropPosition, fill = Ov_Und)) + geom_density(alpha = 0.2
 Y_Axis <- prop.test(x=c(sum(Y_Shoots$Y_Over), sum(Y_Shoots$Y_Under)), n = c(nrow(Y_Shoots), nrow(Y_Shoots)))
 Y_Axis
 
+
 # Diff Bw TBI and non for X undershoots?
 PropXUnderTBI <- X_Shoots %>% group_by(TBI_Non) %>%
   dplyr::summarise(PropPos = mean(X_Under), CorrSD = sd(X_Under), Num = n(), CorrSE = CorrSD/115) # Make n number of partic not 
@@ -225,5 +227,539 @@ propY_TBI <- prop.test(x=c((PropYUnderTBI$Num[1] * PropYUnderTBI$PropPos[1]),(Pr
 
 EgoOverPlots <- ggarrange(X_OverPlot, Y_OverPlot, labels = c("A", "B") ) 
 ggsave("EgoOverPlots.png", width = 30, height = 15, units = "cm")
+
+```
+
+## Fixation
+
+```{r EgoData, echo=FALSE, message=FALSE, warning=FALSE}
+load("Fix_Healthy.Rda")
+load("Fix_ShortTerm.Rda")
+load("Fix_LongTerm.Rda")
+
+Fix_Healthy$ID <- paste(Fix_Healthy$ID, 1, sep = "_")
+Fix_ShortTerm$ID <- paste(Fix_ShortTerm$ID, 2, sep = "_")
+Fix_ShortTerm <- Fix_ShortTerm[-c(4)]
+Fix_LongTerm$ID <- paste(Fix_LongTerm$ID, 3, sep = "_")
+Fix_LongTerm <- Fix_LongTerm[-c(4)]
+FIXdf <- rbind(Fix_Healthy, Fix_ShortTerm, Fix_LongTerm)
+
+
+leveneTest(HVA_Mean_deg ~ Pre_Post, FIXdf)
+leveneTest(VVA_Mean_deg ~ Pre_Post, FIXdf) 
+leveneTest(BCEA_68_Log10 ~ Pre_Post, FIXdf)
+
+shapiro.test(FIXdf$HVA_Mean_deg)
+shapiro.test(FIXdf$VVA_Mean_deg)
+shapiro.test(FIXdf$BCEA_68_Log10)
+
+
+colNames <- c("ID", "Horizontal Visual Angle Error (deg)", "Vertical Visual Angle Error (deg)","BCEA Log10 (MinArc2)",  "Pre_Post", "TBI_Non")
+testTitle <- "Summary Data for Fixation"
+source("GetSummaryTables.R")
+GetSummaryTablesCIs(FIXdf, colNames, testTitle) 
+```
+
+```{r FIXModel_X, echo=FALSE, message=FALSE, warning=FALSE }
+res.aov <- FIXdf %>% anova_test(HVA_Mean_deg ~ TBI_Non)
+par(mfrow = (c(2, 2)))
+plot(res.aov)
+means <- FIXdf %>% group_by(TBI_Non) %>%
+  dplyr::summarise(Mean = mean(HVA_Mean_deg, na.rm = T), SD = sd(HVA_Mean_deg, na.rm = T))
+
+stat.test <- compare_means(
+ HVA_Mean_deg ~ TBI_Non, data = FIXdf,
+ method = "t.test"#, p.adjust.method = "holm"
+)
+stat.test <- stat.test %>%
+ mutate(y.position = c(1, 1.3, 1.6))
+
+H_Fix <- ggplot(FIXdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long")), y =   HVA_Mean_deg, color =  TBI_Non)) + 
+  geom_boxplot(outlier.shape = NA)+ 
+  geom_jitter(shape=16, position=position_jitter(0.2), alpha=0.4)+
+  scale_color_manual(values=c( "#D55E00", "#56B4E9", "#009E73")) +
+  scale_x_discrete(labels=c("Control","mTBI","PCS")) +
+  theme_minimal() + theme(legend.position="none")+
+  xlab(" ") + ylab("Horizontal Visual Angle Error (deg)")+
+  geom_hline(yintercept=0, linetype="dashed", color="#5f6061")+
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
+```
+```{r FIXModel_Y, echo=FALSE, message=FALSE, warning=FALSE }
+res.aov <- FIXdf %>% anova_test(VVA_Mean_deg ~ TBI_Non)
+par(mfrow = (c(2, 2)))
+plot(res.aov)
+means <- FIXdf %>% group_by(TBI_Non) %>%
+  dplyr::summarise(Mean = mean(VVA_Mean_deg, na.rm = T), SD = sd(VVA_Mean_deg, na.rm = T))
+
+stat.test <- compare_means(
+ VVA_Mean_deg ~ TBI_Non, data = FIXdf,
+ method = "t.test"#, p.adjust.method = "holm"
+)
+stat.test <- stat.test %>%
+ mutate(y.position = c(1.5, 1.8, 2.2))
+
+V_Fix <- ggplot(FIXdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long")), y =   VVA_Mean_deg, color =  TBI_Non)) + 
+  geom_boxplot(outlier.shape = NA)+ 
+  geom_jitter(shape=16, position=position_jitter(0.2), alpha=0.4)+
+  scale_color_manual(values=c( "#D55E00", "#56B4E9", "#009E73")) +
+  scale_x_discrete(labels=c("Control","mTBI","PCS")) +
+  theme_minimal() + theme(legend.position="none")+
+  xlab(" ") + ylab("Vertical Visual Angle Error (deg)")+
+  geom_hline(yintercept=0, linetype="dashed", color="#5f6061")+
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
+
+```
+
+```{r FIX_BCEA, echo=FALSE, message=FALSE, warning=FALSE }
+res.aov <- FIXdf %>% anova_test(BCEA_68_Log10 ~ TBI_Non)
+par(mfrow = (c(2, 2)))
+plot(res.aov)
+means <- FIXdf %>% group_by(TBI_Non) %>%
+  dplyr::summarise(Mean = mean(BCEA_68_Log10, na.rm = T), SD = sd(BCEA_68_Log10, na.rm = T))
+
+stat.test <- compare_means(
+ BCEA_68_Log10 ~ TBI_Non, data = FIXdf,
+ method = "t.test"#, p.adjust.method = "holm"
+)
+stat.test <- stat.test %>%
+ mutate(y.position = c(5, 5.5, 6))
+
+B_Fix <- ggplot(FIXdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long")), y =   BCEA_68_Log10, color =  TBI_Non)) + 
+  geom_boxplot(outlier.shape = NA)+ 
+  geom_jitter(shape=16, position=position_jitter(0.2), alpha=0.4)+
+  scale_color_manual(values=c( "#D55E00", "#56B4E9", "#009E73")) +
+  scale_x_discrete(labels=c("Control","mTBI","PCS")) +
+  theme_minimal() + theme(legend.position="none")+
+  xlab(" ") + ylab("Vertical Visual Angle Error (deg)")+
+  #geom_hline(yintercept=0, linetype="dashed", color="#5f6061")+
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
+
+
+FixPlots <- ggarrange(B_Fix, NULL,   H_Fix, V_Fix, labels = c( "A" ,"", "B", "C"))
+ggsave("FixPlots.png", width = 22, height = 20, units = "cm")
+```
+
+## Pursuits
+
+```{r EgoData, echo=FALSE, message=FALSE, warning=FALSE}
+load("Pur_Healthy.Rda")
+load("Pur_ShortTerm.Rda")
+load("Pur_LongTerm.Rda")
+
+Pur_Healthy$ID <- paste(Pur_Healthy$ID, 1, sep = "_")
+Pur_ShortTerm$ID <- paste(Pur_ShortTerm$ID, 2, sep = "_")
+Pur_LongTerm$ID <- paste(Pur_LongTerm$ID, 3, sep = "_")
+Pur_LongTerm <- Pur_LongTerm[-c(8,9)]
+PURdf <- rbind(Pur_Healthy, Pur_ShortTerm, Pur_LongTerm)
+
+
+leveneTest(Num_Sacs ~ Pre_Post, PURdf)
+leveneTest(HVA_Error_Mean_deg ~ Pre_Post, PURdf) 
+leveneTest(VVA_Error_Mean_deg ~ Pre_Post, PURdf)
+leveneTest(TotalVA_Error_Mean_deg ~ Pre_Post ,PURdf)
+leveneTest(Gain_Total ~ Pre_Post, PURdf)
+leveneTest(Gain_Horiz ~ Pre_Post, PURdf)
+leveneTest(Gain_Vert ~ Pre_Post, PURdf)
+
+shapiro.test(PURdf$Num_Sacs)
+shapiro.test(PURdf$HVA_Error_Mean_deg)
+shapiro.test(PURdf$VVA_Error_Mean_deg)
+shapiro.test(PURdf$TotalVA_Error_Mean_deg)
+shapiro.test(PURdf$Gain_Total)
+shapiro.test(PURdf$Gain_Horiz)
+shapiro.test(PURdf$Gain_Vert)
+
+colNames <- c("ID", "Number of Saccades", "Horizontal Visual Angle Error (deg)", "Vertical Visual Angle Error (deg)","Total Visual Angle Error (deg)", "Total Gain", "Horizontal Gain", "Vertical Gain", "Pre_Post", "TBI_Non")
+testTitle <- "Summary Data for Pursuits"
+source("GetSummaryTables.R")
+GetSummaryTablesCIs(PURdf, colNames, testTitle) 
+```
+
+```{r T_Pur, echo=FALSE, message=FALSE, warning=FALSE }
+res.aov <- PURdf %>% anova_test(TotalVA_Error_Mean_deg ~ TBI_Non)
+par(mfrow = (c(2, 2)))
+plot(res.aov)
+means <- PURdf %>% group_by(TBI_Non) %>%
+  dplyr::summarise(Mean = mean(TotalVA_Error_Mean_deg, na.rm = T), SD = sd(TotalVA_Error_Mean_deg, na.rm = T))
+
+stat.test <- compare_means(
+ TotalVA_Error_Mean_deg ~ TBI_Non, data = PURdf, method = "t.test")#, p.adjust.method = "holm"
+stat.test <- stat.test %>%
+ mutate(y.position = c(0.8, 1, 1.3))
+
+T_Pur <- ggplot(PURdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long")), y = TotalVA_Error_Mean_deg, color = TBI_Non)) + 
+  geom_boxplot(outlier.shape = NA)+ 
+  geom_jitter(shape=16, position=position_jitter(0.2), alpha=0.4)+
+  scale_color_manual(values=c( "#D55E00", "#56B4E9", "#009E73")) +
+  scale_x_discrete(labels=c("Control","mTBI","PCS")) +
+  theme_minimal() + theme(legend.position="none")+
+  xlab(" ") + ylab("Total Visual Angle Error (deg)")+
+  geom_hline(yintercept=0, linetype="dashed", color="#5f6061")+
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
+
+```
+
+```{r H_Pur, echo=FALSE, message=FALSE, warning=FALSE }
+res.aov <- PURdf %>% anova_test(HVA_Error_Mean_deg ~ TBI_Non)
+par(mfrow = (c(2, 2)))
+plot(res.aov)
+means <- PURdf %>% group_by(TBI_Non) %>%
+  dplyr::summarise(Mean = mean(HVA_Error_Mean_deg, na.rm = T), SD = sd(HVA_Error_Mean_deg, na.rm = T))
+
+stat.test <- compare_means(
+ HVA_Error_Mean_deg ~ TBI_Non, data = PURdf, method = "t.test")#, p.adjust.method = "holm"
+stat.test <- stat.test %>%
+ mutate(y.position = c( 1.3, 1.6, 1.9))
+
+H_Pur <- ggplot(PURdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long")), y = HVA_Error_Mean_deg, color = TBI_Non)) + 
+  geom_boxplot(outlier.shape = NA)+ 
+  geom_jitter(shape=16, position=position_jitter(0.2), alpha=0.4)+
+  scale_color_manual(values=c( "#D55E00", "#56B4E9", "#009E73")) +
+  scale_x_discrete(labels=c("Control","mTBI","PCS")) +
+  theme_minimal() + theme(legend.position="none")+
+  xlab(" ") + ylab("Horizontal Visual Angle Error (deg)")+
+  geom_hline(yintercept=0, linetype="dashed", color="#5f6061")+
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
+
+```
+```{r V_Pur, echo=FALSE, message=FALSE, warning=FALSE }
+res.aov <- PURdf %>% anova_test(VVA_Error_Mean_deg ~ TBI_Non)
+par(mfrow = (c(2, 2)))
+plot(res.aov)
+means <- PURdf %>% group_by(TBI_Non) %>%
+  dplyr::summarise(Mean = mean(VVA_Error_Mean_deg, na.rm = T), SD = sd(VVA_Error_Mean_deg, na.rm = T))
+
+stat.test <- compare_means(
+ VVA_Error_Mean_deg ~ TBI_Non, data = PURdf, method = "t.test")#, p.adjust.method = "holm"
+stat.test <- stat.test %>%
+ mutate(y.position = c( 2.8, 3.2, 3.7))
+
+V_Pur <- ggplot(PURdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long")), y = VVA_Error_Mean_deg, color = TBI_Non)) + 
+  geom_boxplot(outlier.shape = NA)+ 
+  geom_jitter(shape=16, position=position_jitter(0.2), alpha=0.4)+
+  scale_color_manual(values=c( "#D55E00", "#56B4E9", "#009E73")) +
+  scale_x_discrete(labels=c("Control","mTBI","PCS")) +
+  theme_minimal() + theme(legend.position="none")+
+  xlab(" ") + ylab("Vertical Visual Angle Error (deg)")+
+  geom_hline(yintercept=0, linetype="dashed", color="#5f6061")+
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}")
+
+PurPlots <- ggarrange(T_Pur, NULL,   H_Pur, V_Pur, labels = c( "A" ,"", "B", "C"))
+ggsave("PurPlots.png", width = 22, height = 20, units = "cm")
+
+```
+
+```{r T_Gain, echo=FALSE, message=FALSE, warning=FALSE }
+res.aov <- PURdf %>% anova_test(Gain_Total ~ TBI_Non)
+par(mfrow = (c(2, 2)))
+plot(res.aov)
+K_test_Pres <-  kruskal_test(Gain_Total ~ TBI_Non, data = PURdf)
+
+means <- PURdf %>% group_by(TBI_Non) %>%
+  dplyr::summarise(Mean = mean(Gain_Total, na.rm = T), SD = sd(Gain_Total, na.rm = T))
+
+stat.test <- compare_means(
+ Gain_Total ~ TBI_Non, data = PURdf, method = "wilcox.test")#, p.adjust.method = "holm"
+stat.test <- stat.test %>%
+ mutate(y.position = c(1.1, 1.15,1.2))
+
+T_Gain <- ggplot(PURdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long")), y = Gain_Total, color = TBI_Non)) + 
+  geom_boxplot(outlier.shape = NA)+ 
+  geom_jitter(shape=16, position=position_jitter(0.2), alpha=0.4)+
+  scale_color_manual(values=c( "#D55E00", "#56B4E9", "#009E73")) +
+  scale_x_discrete(labels=c("Control","mTBI","PCS")) +
+  theme_minimal() + theme(legend.position="none")+
+  xlab(" ") + ylab("Total Gain")+
+  geom_hline(yintercept=1, linetype="dashed", color="#5f6061")+
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}")
+
+```
+
+```{r H_Gain, echo=FALSE, message=FALSE, warning=FALSE }
+res.aov <- PURdf %>% anova_test(Gain_Horiz ~ TBI_Non)
+par(mfrow = (c(2, 2)))
+plot(res.aov)
+K_test_Pres <-  kruskal_test(Gain_Horiz ~ TBI_Non, data = PURdf)
+
+means <- PURdf %>% group_by(TBI_Non) %>%
+  dplyr::summarise(Mean = mean(Gain_Horiz, na.rm = T), SD = sd(Gain_Horiz, na.rm = T))
+
+stat.test <- compare_means(
+ Gain_Horiz ~ TBI_Non, data = PURdf, method = "wilcox.test")#, p.adjust.method = "holm"
+stat.test <- stat.test %>%
+ mutate(y.position = c(1.8, 1.9,2))
+
+H_Gain <- ggplot(PURdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long")), y = Gain_Horiz, color = TBI_Non)) + 
+  geom_boxplot(outlier.shape = NA)+ 
+  geom_jitter(shape=16, position=position_jitter(0.2), alpha=0.4)+
+  scale_color_manual(values=c( "#D55E00", "#56B4E9", "#009E73")) +
+  scale_x_discrete(labels=c("Control","mTBI","PCS")) +
+  theme_minimal() + theme(legend.position="none")+
+  xlab(" ") + ylab("Horizontal Gain")+
+  geom_hline(yintercept=1, linetype="dashed", color="#5f6061")+
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}")
+
+```
+
+```{r V_Gain, echo=FALSE, message=FALSE, warning=FALSE }
+res.aov <- PURdf %>% anova_test(Gain_Vert ~ TBI_Non)
+par(mfrow = (c(2, 2)))
+plot(res.aov)
+K_test_Pres <-  kruskal_test(Gain_Vert ~ TBI_Non, data = PURdf)
+
+means <- PURdf %>% group_by(TBI_Non) %>%
+  dplyr::summarise(Mean = mean(Gain_Vert, na.rm = T), SD = sd(Gain_Vert, na.rm = T))
+
+stat.test <- compare_means(
+ Gain_Vert ~ TBI_Non, data = PURdf, method = "wilcox.test")#, p.adjust.method = "holm"
+stat.test <- stat.test %>%
+ mutate(y.position = c(1.8, 1.9,2))
+
+V_Gain <- ggplot(PURdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long")), y = Gain_Vert, color = TBI_Non)) + 
+  geom_boxplot(outlier.shape = NA)+ 
+  geom_jitter(shape=16, position=position_jitter(0.2), alpha=0.4)+
+  scale_color_manual(values=c( "#D55E00", "#56B4E9", "#009E73")) +
+  scale_x_discrete(labels=c("Control","mTBI","PCS")) +
+  theme_minimal() + theme(legend.position="none")+
+  xlab(" ") + ylab("Vertical Gain")+
+  geom_hline(yintercept=1, linetype="dashed", color="#5f6061")+
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}")
+
+```
+
+```{r N_Sacs, echo=FALSE, message=FALSE, warning=FALSE }
+res.aov <- PURdf %>% anova_test(Num_Sacs ~ TBI_Non)
+par(mfrow = (c(2, 2)))
+plot(res.aov)
+K_test_Pres <-  kruskal_test(Num_Sacs ~ TBI_Non, data = PURdf)
+
+means <- PURdf %>% group_by(TBI_Non) %>%
+  dplyr::summarise(Mean = mean(Num_Sacs, na.rm = T), SD = sd(Num_Sacs, na.rm = T))
+
+stat.test <- compare_means(
+ Num_Sacs ~ TBI_Non, data = PURdf, method = "wilcox.test")#, p.adjust.method = "holm"
+stat.test <- stat.test %>%
+ mutate(y.position = c(4,6,8))
+
+N_Sacs <- ggplot(PURdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long")), y = Num_Sacs, color = TBI_Non)) + 
+  geom_boxplot(outlier.shape = NA)+ 
+  geom_jitter(shape=16, position=position_jitter(0.2), alpha=0.4)+
+  scale_color_manual(values=c( "#D55E00", "#56B4E9", "#009E73")) +
+  scale_x_discrete(labels=c("Control","mTBI","PCS")) +
+  theme_minimal() + theme(legend.position="none")+
+  xlab(" ") + ylab("Number of Saccades")+
+  #geom_hline(yintercept=1, linetype="dashed", color="#5f6061")+
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}")
+
+PurPlotsGain <- ggarrange(T_Gain , H_Gain, V_Gain, N_Sacs, ncol=2, nrow=2, labels = c( "A" ,"B", "C", "D"))
+ggsave("PurPlotsGain.png", width = 25, height = 20, units = "cm")
+```
+
+## Saccades
+
+```{r EgoData, echo=FALSE, message=FALSE, warning=FALSE}
+load("Sac_Healthy.Rda")
+load("Sac_ShortTerm.Rda")
+load("Sac_LongTerm.Rda")
+
+view(Sac_Healthy)
+view(Sac_ShortTerm)
+view(Sac_LongTerm)
+
+Sac_Healthy$ID <- paste(Sac_Healthy$ID, 1, sep = "_")
+colnames(Sac_Healthy)[colnames(Sac_Healthy) == 'Test_Corr' ] <- 'Test_Corr_R'
+
+Sac_ShortTerm$ID <- paste(Sac_ShortTerm$ID, 2, sep = "_")
+Sac_ShortTerm <- Sac_ShortTerm[-c(4)]
+Sac_LongTerm$ID <- paste(Sac_LongTerm$ID, 3, sep = "_")
+Sac_LongTerm <- Sac_LongTerm[-c(4,6)]
+SACdf <- rbind(Sac_Healthy, Sac_ShortTerm, Sac_LongTerm)
+
+
+leveneTest(Test_Corr_R ~ Pre_Post,       SACdf)
+leveneTest(Saccade_Latency ~ Pre_Post,   SACdf) 
+leveneTest(Saccade_Vel_Deg_s ~ Pre_Post, SACdf)
+
+
+shapiro.test(SACdf$Test_Corr_R)
+shapiro.test(SACdf$Saccade_Latency)
+shapiro.test(SACdf$Saccade_Vel_Deg_s)
+
+
+colNames <- c("ID", "Target Type" ,"Number Trials Correct", "Saccade Latency (ms)", "Saccade Velocity (deg/s)", "Pre_Post", "TBI_Non")
+testTitle <- "Summary Data for Saccades"
+source("GetSummaryTables.R")
+GetSummaryTablesCIs(SACdf, colNames, testTitle) 
+```
+
+```{r Sac_Trials Corr, echo=FALSE, message=FALSE, warning=FALSE }
+## Pro Sac
+res.aov <- subset(SACdf, TargType_Unity %like% "ProSac") %>% anova_test(Test_Corr_R ~ TBI_Non)
+par(mfrow = (c(2, 2)))
+plot(res.aov)
+K_test_Pres <-  kruskal_test(Test_Corr_R ~ TBI_Non, data = subset(SACdf, TargType_Unity %like% "ProSac"))
+
+means <- subset(SACdf, TargType_Unity %like% "ProSac") %>% group_by(TBI_Non) %>%
+  dplyr::summarise(Mean = mean(Test_Corr_R, na.rm = T), SD = sd(Test_Corr_R, na.rm = T),  CorrSE = SD/115)
+
+stat.test <- compare_means(
+ Test_Corr_R ~ TBI_Non, data = subset(SACdf, TargType_Unity %like% "ProSac"),
+ method = "wilcox.test"#, p.adjust.method = "holm"
+)
+stat.test <- stat.test %>%
+ mutate(y.position = c(0.90, .95, 1))
+
+PT_Sac <- ggbarplot(means, x = "TBI_Non", y = "Mean", 
+          color = "TBI_Non",fill = "TBI_Non", palette = myCols3,  #add = "jitter",
+          #order = c("Non", "Short", "Long"),
+          ylab = "Proportion of Pro-Saccade Trials Performed Correctly", xlab = " ") + 
+          scale_x_discrete(labels=c("Control","mTBI","PCS")) +
+  geom_errorbar(aes(x= TBI_Non, ymin= Mean-CorrSE*1.96, ymax = Mean + CorrSE*1.96), width=.2, position=position_dodge(.9)) +
+          theme(legend.position = "none")+
+    stat_pvalue_manual(stat.test, label = "p.adj") 
+   #labs( subtitle = get_test_label(K_test_Pres, detailed = TRUE))
+
+
+## Anti Sac
+res.aov <- subset(SACdf, TargType_Unity %like% "AntiSac") %>% anova_test(Test_Corr_R ~ TBI_Non)
+par(mfrow = (c(2, 2)))
+plot(res.aov)
+K_test_Pres <-  kruskal_test(Test_Corr_R ~ TBI_Non, data = subset(SACdf, TargType_Unity %like% "AntiSac"))
+
+means <- subset(SACdf, TargType_Unity %like% "AntiSac") %>% group_by(TBI_Non) %>%
+  dplyr::summarise(Mean = mean(Test_Corr_R, na.rm = T), SD = sd(Test_Corr_R, na.rm = T),  CorrSE = SD/115)
+
+stat.test <- compare_means(
+ Test_Corr_R ~ TBI_Non, data = subset(SACdf, TargType_Unity %like% "AntiSac"),
+ method = "wilcox.test"#, p.adjust.method = "holm"
+)
+stat.test <- stat.test %>%
+ mutate(y.position = c(0.90, .95, 1))
+
+AT_Sac <- ggbarplot(means, x = "TBI_Non", y = "Mean", 
+          color = "TBI_Non", fill = "TBI_Non", palette = myCols3, 
+          ylab = "Proportion of Anti-Saccade Trials Performed Correctly", xlab = " ") + 
+          scale_x_discrete(labels=c("Control","mTBI","PCS")) +
+          geom_errorbar(aes(x= TBI_Non, ymin= Mean-CorrSE*1.96, ymax = Mean + CorrSE*1.96), width=.2, position=position_dodge(.9)) +
+          #geom_hline(yintercept=0, linetype="dashed", color="#5f6061")+
+          theme(legend.position = "none")+
+    stat_pvalue_manual(stat.test, label = "p.adj") 
+   #labs( subtitle = get_test_label(K_test_Pres, detailed = TRUE))
+
+SacTrialPlots<- ggarrange(PT_Sac , AT_Sac,  labels = c( "A" ,"B"))
+ggsave("SacTrialPlots.png", width = 20, height = 13, units = "cm")
+
+```
+
+
+```{r Sac_Latency, echo=FALSE, message=FALSE, warning=FALSE }
+## Pro Sac
+res.aov <- subset(SACdf, TargType_Unity %like% "ProSac") %>% anova_test(Saccade_Latency ~ TBI_Non)
+par(mfrow = (c(2, 2)))
+plot(res.aov)
+K_test_Pres <-  kruskal_test(Saccade_Latency ~ TBI_Non, data = subset(SACdf, TargType_Unity %like% "ProSac"))
+
+means <- subset(SACdf, TargType_Unity %like% "ProSac") %>% group_by(TBI_Non) %>%
+  dplyr::summarise(Mean = mean(Saccade_Latency, na.rm = T), SD = sd(Saccade_Latency, na.rm = T))
+
+stat.test <- compare_means(
+ Saccade_Latency ~ TBI_Non, data = subset(SACdf, TargType_Unity %like% "ProSac"),
+ method = "wilcox.test"#, p.adjust.method = "holm"
+)
+stat.test <- stat.test %>%
+ mutate(y.position = c(2, 2.2,2.4))
+
+PL_Sac <- ggplot(subset(SACdf, TargType_Unity %like% "ProSac"), aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long")), y =   Saccade_Latency, color =  TBI_Non)) + 
+  geom_boxplot(outlier.shape = NA)+ 
+  geom_jitter(shape=16, position=position_jitter(0.2), alpha=0.4)+
+  scale_color_manual(values=c( "#D55E00", "#56B4E9", "#009E73")) +
+  scale_x_discrete(labels=c("Control","mTBI","PCS")) +
+  theme_minimal() + theme(legend.position="none")+
+  xlab(" ") + ylab("Pro-Saccade Latency (ms)")+
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
+
+
+
+## Anti Sac
+res.aov <- subset(SACdf, TargType_Unity %like% "AntiSac") %>% anova_test(Saccade_Latency ~ TBI_Non)
+par(mfrow = (c(2, 2)))
+plot(res.aov)
+K_test_Pres <-  kruskal_test(Saccade_Latency ~ TBI_Non, data = subset(SACdf, TargType_Unity %like% "AntiSac"))
+
+means <- subset(SACdf, TargType_Unity %like% "AntiSac") %>% group_by(TBI_Non) %>%
+  dplyr::summarise(Mean = mean(Saccade_Latency, na.rm = T), SD = sd(Saccade_Latency, na.rm = T))
+
+stat.test <- compare_means(
+ Saccade_Latency ~ TBI_Non, data = subset(SACdf, TargType_Unity %like% "AntiSac"),
+ method = "wilcox.test"#, p.adjust.method = "holm"
+)
+stat.test <- stat.test %>%
+ mutate(y.position = c(2, 2.2,2.4))
+
+AL_Sac <- ggplot(subset(SACdf, TargType_Unity %like% "Anti"), aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long")), y =   Saccade_Latency, color =  TBI_Non)) + 
+  geom_boxplot(outlier.shape = NA)+ 
+  geom_jitter(shape=16, position=position_jitter(0.2), alpha=0.4)+
+  scale_color_manual(values=c( "#D55E00", "#56B4E9", "#009E73")) +
+  scale_x_discrete(labels=c("Control","mTBI","PCS")) +
+  theme_minimal() + theme(legend.position="none")+
+  xlab(" ") + ylab("Anti-Saccade Latency (ms)")+
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
+
+```
+
+```{r Sac_Vel, echo=FALSE, message=FALSE, warning=FALSE }
+## Pro Sac
+res.aov <- subset(SACdf, TargType_Unity %like% "ProSac") %>% anova_test(Saccade_Vel_Deg_s ~ TBI_Non)
+par(mfrow = (c(2, 2)))
+plot(res.aov)
+K_test_Pres <-  kruskal_test(Saccade_Vel_Deg_s ~ TBI_Non, data = subset(SACdf, TargType_Unity %like% "ProSac"))
+
+means <- subset(SACdf, TargType_Unity %like% "ProSac") %>% group_by(TBI_Non) %>%
+  dplyr::summarise(Mean = mean(Saccade_Vel_Deg_s, na.rm = T), SD = sd(Saccade_Vel_Deg_s, na.rm = T))
+
+stat.test <- compare_means(
+ Saccade_Vel_Deg_s ~ TBI_Non, data = subset(SACdf, TargType_Unity %like% "ProSac"),
+ method = "wilcox.test"#, p.adjust.method = "holm"
+)
+stat.test <- stat.test %>%
+ mutate(y.position = c(300, 320, 350))
+
+PV_Sac <- ggplot(subset(SACdf, TargType_Unity %like% "ProSac"), aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long")), y =   Saccade_Vel_Deg_s, color =  TBI_Non)) + 
+  geom_boxplot(outlier.shape = NA)+ 
+  geom_jitter(shape=16, position=position_jitter(0.2), alpha=0.4)+
+  scale_color_manual(values=c( "#D55E00", "#56B4E9", "#009E73")) +
+  scale_x_discrete(labels=c("Control","mTBI","PCS")) +
+  theme_minimal() + theme(legend.position="none")+
+  xlab(" ") + ylab("Pro-Saccade Velocity (deg/sec)")+
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
+
+
+## Anti Sac
+res.aov <- subset(SACdf, TargType_Unity %like% "AntiSac") %>% anova_test(Saccade_Vel_Deg_s ~ TBI_Non)
+par(mfrow = (c(2, 2)))
+plot(res.aov)
+K_test_Pres <-  kruskal_test(Saccade_Vel_Deg_s ~ TBI_Non, data = subset(SACdf, TargType_Unity %like% "AntiSac"))
+
+means <- subset(SACdf, TargType_Unity %like% "AntiSac") %>% group_by(TBI_Non) %>%
+  dplyr::summarise(Mean = mean(Saccade_Vel_Deg_s, na.rm = T), SD = sd(Saccade_Vel_Deg_s, na.rm = T))
+
+stat.test <- compare_means(
+ Saccade_Vel_Deg_s ~ TBI_Non, data = subset(SACdf, TargType_Unity %like% "AntiSac"),
+ method = "wilcox.test"#, p.adjust.method = "holm"
+)
+stat.test <- stat.test %>%
+ mutate(y.position = c(300, 320, 350))
+
+AV_Sac <- ggplot(subset(SACdf, TargType_Unity %like% "Anti"), aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long")), y =   Saccade_Vel_Deg_s, color =  TBI_Non)) + 
+  geom_boxplot(outlier.shape = NA)+ 
+  geom_jitter(shape=16, position=position_jitter(0.2), alpha=0.4)+
+  scale_color_manual(values=c( "#D55E00", "#56B4E9", "#009E73")) +
+  scale_x_discrete(labels=c("Control","mTBI","PCS")) +
+  theme_minimal() + theme(legend.position="none")+
+  xlab(" ") + ylab("Anti-Saccade Velocity (deg/sec)")+
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
+
+Sac_LV_Plots<- ggarrange(PL_Sac , AL_Sac, PV_Sac , AV_Sac, nrow=2, ncol=2, labels = c( "A" ,"B", "C" ,"D"))
+ggsave("Sac_LV_Plots.png", width = 20, height = 20, units = "cm")
 
 ```
