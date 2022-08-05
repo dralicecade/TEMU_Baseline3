@@ -232,7 +232,7 @@ ggsave("EgoOverPlots.png", width = 30, height = 15, units = "cm")
 
 ## Fixation
 
-```{r EgoData, echo=FALSE, message=FALSE, warning=FALSE}
+```{r FixData, echo=FALSE, message=FALSE, warning=FALSE}
 load("Fix_Healthy.Rda")
 load("Fix_ShortTerm.Rda")
 load("Fix_LongTerm.Rda")
@@ -330,7 +330,7 @@ B_Fix <- ggplot(FIXdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long"
   scale_color_manual(values=c( "#D55E00", "#56B4E9", "#009E73")) +
   scale_x_discrete(labels=c("Control","mTBI","PCS")) +
   theme_minimal() + theme(legend.position="none")+
-  xlab(" ") + ylab("Vertical Visual Angle Error (deg)")+
+  xlab(" ") + ylab("BCEA Log10 (MinArc2)")+
   #geom_hline(yintercept=0, linetype="dashed", color="#5f6061")+
   stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
 
@@ -341,7 +341,7 @@ ggsave("FixPlots.png", width = 22, height = 20, units = "cm")
 
 ## Pursuits
 
-```{r EgoData, echo=FALSE, message=FALSE, warning=FALSE}
+```{r PurData, echo=FALSE, message=FALSE, warning=FALSE}
 load("Pur_Healthy.Rda")
 load("Pur_ShortTerm.Rda")
 load("Pur_LongTerm.Rda")
@@ -557,14 +557,14 @@ ggsave("PurPlotsGain.png", width = 25, height = 20, units = "cm")
 
 ## Saccades
 
-```{r EgoData, echo=FALSE, message=FALSE, warning=FALSE}
+```{r SacData, echo=FALSE, message=FALSE, warning=FALSE}
 load("Sac_Healthy.Rda")
 load("Sac_ShortTerm.Rda")
 load("Sac_LongTerm.Rda")
 
-view(Sac_Healthy)
-view(Sac_ShortTerm)
-view(Sac_LongTerm)
+#view(Sac_Healthy)
+#view(Sac_ShortTerm)
+#view(Sac_LongTerm)
 
 Sac_Healthy$ID <- paste(Sac_Healthy$ID, 1, sep = "_")
 colnames(Sac_Healthy)[colnames(Sac_Healthy) == 'Test_Corr' ] <- 'Test_Corr_R'
@@ -586,7 +586,7 @@ shapiro.test(SACdf$Saccade_Latency)
 shapiro.test(SACdf$Saccade_Vel_Deg_s)
 
 
-colNames <- c("ID", "Target Type" ,"Number Trials Correct", "Saccade Latency (ms)", "Saccade Velocity (deg/s)", "Pre_Post", "TBI_Non")
+colNames <- c("ID", "Target Type" ,"Number Trials Correct", "Saccade Latency (s)", "Saccade Velocity (deg/s)", "Pre_Post", "TBI_Non")
 testTitle <- "Summary Data for Saccades"
 source("GetSummaryTables.R")
 GetSummaryTablesCIs(SACdf, colNames, testTitle) 
@@ -611,7 +611,7 @@ stat.test <- stat.test %>%
 
 PT_Sac <- ggbarplot(means, x = "TBI_Non", y = "Mean", 
           color = "TBI_Non",fill = "TBI_Non", palette = myCols3,  #add = "jitter",
-          #order = c("Non", "Short", "Long"),
+          order = c("Non", "Short", "Long"),
           ylab = "Proportion of Pro-Saccade Trials Performed Correctly", xlab = " ") + 
           scale_x_discrete(labels=c("Control","mTBI","PCS")) +
   geom_errorbar(aes(x= TBI_Non, ymin= Mean-CorrSE*1.96, ymax = Mean + CorrSE*1.96), width=.2, position=position_dodge(.9)) +
@@ -638,6 +638,7 @@ stat.test <- stat.test %>%
 
 AT_Sac <- ggbarplot(means, x = "TBI_Non", y = "Mean", 
           color = "TBI_Non", fill = "TBI_Non", palette = myCols3, 
+          order = c("Non", "Short", "Long"),
           ylab = "Proportion of Anti-Saccade Trials Performed Correctly", xlab = " ") + 
           scale_x_discrete(labels=c("Control","mTBI","PCS")) +
           geom_errorbar(aes(x= TBI_Non, ymin= Mean-CorrSE*1.96, ymax = Mean + CorrSE*1.96), width=.2, position=position_dodge(.9)) +
@@ -675,7 +676,7 @@ PL_Sac <- ggplot(subset(SACdf, TargType_Unity %like% "ProSac"), aes(x = factor(T
   scale_color_manual(values=c( "#D55E00", "#56B4E9", "#009E73")) +
   scale_x_discrete(labels=c("Control","mTBI","PCS")) +
   theme_minimal() + theme(legend.position="none")+
-  xlab(" ") + ylab("Pro-Saccade Latency (ms)")+
+  xlab(" ") + ylab("Pro-Saccade Latency (s)")+
   stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
 
 
@@ -702,7 +703,7 @@ AL_Sac <- ggplot(subset(SACdf, TargType_Unity %like% "Anti"), aes(x = factor(TBI
   scale_color_manual(values=c( "#D55E00", "#56B4E9", "#009E73")) +
   scale_x_discrete(labels=c("Control","mTBI","PCS")) +
   theme_minimal() + theme(legend.position="none")+
-  xlab(" ") + ylab("Anti-Saccade Latency (ms)")+
+  xlab(" ") + ylab("Anti-Saccade Latency (s)")+
   stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
 
 ```
@@ -730,7 +731,7 @@ PV_Sac <- ggplot(subset(SACdf, TargType_Unity %like% "ProSac"), aes(x = factor(T
   scale_color_manual(values=c( "#D55E00", "#56B4E9", "#009E73")) +
   scale_x_discrete(labels=c("Control","mTBI","PCS")) +
   theme_minimal() + theme(legend.position="none")+
-  xlab(" ") + ylab("Pro-Saccade Velocity (deg/sec)")+
+  xlab(" ") + ylab("Pro-Saccade Velocity (deg/s)")+
   stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
 
 
@@ -756,10 +757,455 @@ AV_Sac <- ggplot(subset(SACdf, TargType_Unity %like% "Anti"), aes(x = factor(TBI
   scale_color_manual(values=c( "#D55E00", "#56B4E9", "#009E73")) +
   scale_x_discrete(labels=c("Control","mTBI","PCS")) +
   theme_minimal() + theme(legend.position="none")+
-  xlab(" ") + ylab("Anti-Saccade Velocity (deg/sec)")+
+  xlab(" ") + ylab("Anti-Saccade Velocity (deg/s)")+
   stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
 
 Sac_LV_Plots<- ggarrange(PL_Sac , AL_Sac, PV_Sac , AV_Sac, nrow=2, ncol=2, labels = c( "A" ,"B", "C" ,"D"))
 ggsave("Sac_LV_Plots.png", width = 20, height = 20, units = "cm")
+
+```
+
+## Stroop
+
+```{r StrData, echo=FALSE, message=FALSE, warning=FALSE}
+load("Str_Healthy.Rda")
+load("Str_ShortTerm.Rda")
+load("Str_LongTerm.Rda")
+
+#view(Str_Healthy)
+#view(Str_ShortTerm)
+#view(Str_LongTerm)
+
+Str_Healthy$ID <- paste(Str_Healthy$ID, 1, sep = "_")
+Str_ShortTerm$ID <- paste(Str_ShortTerm$ID, 2, sep = "_")
+Str_ShortTerm <- Str_ShortTerm[-c(4,9)]
+Str_LongTerm$ID <- paste(Str_LongTerm$ID, 3, sep = "_")
+Str_LongTerm <- Str_LongTerm[-c(4)]
+STRdf <- rbind(Str_Healthy, Str_ShortTerm, Str_LongTerm)
+
+STRdf$Test_Corr <-  as.numeric(STRdf$Test_Corr)
+leveneTest(Test_Corr ~ Pre_Post,       STRdf)
+leveneTest(Saccade_Latency ~ Pre_Post, STRdf) 
+leveneTest(trialTime ~ Pre_Post,       STRdf)
+
+
+shapiro.test(STRdf$Test_Corr)
+shapiro.test(STRdf$Saccade_Latency)
+shapiro.test(STRdf$trialTime)
+
+
+colNames <- c("ID", "Stroop Part" , "Saccade Latency (s)", "Trial Time (s)", "Number Trials Correct", "Pre_Post", "TBI_Non")
+testTitle <- "Summary Data for Stroop"
+source("GetSummaryTables.R")
+GetSummaryTablesCIs(STRdf, colNames, testTitle) 
+```
+
+
+```{r Str_Trials Corr, echo=FALSE, message=FALSE, warning=FALSE }
+## Part one
+res.aov <- subset(STRdf, strpPart_Unity == 1) %>% anova_test(Test_Corr ~ TBI_Non)
+par(mfrow = (c(2, 2)))
+plot(res.aov)
+K_test_Pres <-  kruskal_test(Test_Corr ~ TBI_Non, data = subset(STRdf, strpPart_Unity == 1))
+
+means <- subset(STRdf, strpPart_Unity == 1) %>% group_by(TBI_Non) %>%
+  dplyr::summarise(Mean = mean(Test_Corr, na.rm = T), SD = sd(Test_Corr, na.rm = T),  CorrSE = SD/115)
+
+stat.test <- compare_means(
+ Test_Corr ~ TBI_Non, data = subset(STRdf, strpPart_Unity == 1),
+ method = "wilcox.test"#, p.adjust.method = "holm"
+)
+stat.test <- stat.test %>%
+ mutate(y.position = c( 1, 1.05, 1.1))
+
+P1_Sac <- ggbarplot(means, x = "TBI_Non", y = "Mean", 
+          color = "TBI_Non",fill = "TBI_Non", palette = myCols3,  #add = "jitter",
+          order = c("Non", "Short", "Long"),
+          ylab = "Proportion of Part One Trials Performed Correctly", xlab = " ") + 
+          scale_x_discrete(labels=c("Control","mTBI","PCS")) +
+  geom_errorbar(aes(x= TBI_Non, ymin= Mean-CorrSE*1.96, ymax = Mean + CorrSE*1.96), width=.2, position=position_dodge(.9)) +
+          theme(legend.position = "none")+
+    stat_pvalue_manual(stat.test, label = "p.adj") 
+   #labs( subtitle = get_test_label(K_test_Pres, detailed = TRUE))
+
+
+## Part 2
+res.aov <- subset(STRdf, strpPart_Unity == 2) %>% anova_test(Test_Corr ~ TBI_Non)
+par(mfrow = (c(2, 2)))
+plot(res.aov)
+K_test_Pres <-  kruskal_test(Test_Corr ~ TBI_Non, data = subset(STRdf, strpPart_Unity == 2))
+
+means <- subset(STRdf, strpPart_Unity == 2) %>% group_by(TBI_Non) %>%
+  dplyr::summarise(Mean = mean(Test_Corr, na.rm = T), SD = sd(Test_Corr, na.rm = T),  CorrSE = SD/115)
+
+stat.test <- compare_means(
+ Test_Corr ~ TBI_Non, data = subset(STRdf, strpPart_Unity == 2),
+ method = "wilcox.test"#, p.adjust.method = "holm"
+)
+stat.test <- stat.test %>%
+ mutate(y.position = c(1, 1.05, 1.1))
+
+P2_Sac <- ggbarplot(means, x = "TBI_Non", y = "Mean", 
+          color = "TBI_Non", fill = "TBI_Non", palette = myCols3, 
+          order = c("Non", "Short", "Long"),
+          ylab = "Proportion of Part Two Trials Performed Correctly", xlab = " ") + 
+          scale_x_discrete(labels=c("Control","mTBI","PCS")) +
+          geom_errorbar(aes(x= TBI_Non, ymin= Mean-CorrSE*1.96, ymax = Mean + CorrSE*1.96), width=.2, position=position_dodge(.9)) +
+          #geom_hline(yintercept=0, linetype="dashed", color="#5f6061")+
+          theme(legend.position = "none")+
+    stat_pvalue_manual(stat.test, label = "p.adj") 
+   #labs( subtitle = get_test_label(K_test_Pres, detailed = TRUE))
+
+StrTrialPlots<- ggarrange(P1_Sac , P2_Sac,  labels = c( "A" ,"B"))
+ggsave("StrTrialPlots.png", width = 20, height = 13, units = "cm")
+
+```
+
+```{r Str_Trial Time, echo=FALSE, message=FALSE, warning=FALSE }
+## P1
+P1 <- subset(STRdf, strpPart_Unity == 1)
+P1 <- P1[c(1,4,7)]
+P1_totalTime <- P1 %>% unite(ID, ID, TBI_Non, sep = "_")
+
+DT <- data.table(P1_totalTime)
+P1_tots <- setnames(DT[, sapply(.SD, function(x)  list(tot=sum(x, na.rm = T))), by=ID], c("ID", sapply(names(DT)[-1], paste0, c(".tot"))))
+P1_tots <-  P1_tots %>% separate(ID, c("ID", "group", "TBI_Non"))
+P1_tots <- P1_tots %>% unite(ID, ID, group, sep = "_")
+
+res.aov <- P1_tots %>% anova_test(trialTime.tot ~ TBI_Non)
+par(mfrow = (c(2, 2)))
+plot(res.aov)
+K_test_Pres <-  kruskal_test(trialTime.tot ~ TBI_Non, data = P1_tots)
+
+means <- P1_tots %>% group_by(TBI_Non) %>%
+  dplyr::summarise(Mean = mean(trialTime.tot, na.rm = T), SD = sd(trialTime.tot, na.rm = T))
+
+stat.test <- compare_means(
+ trialTime.tot ~ TBI_Non, data = P1_tots,
+ method = "wilcox.test"#, p.adjust.method = "holm"
+)
+stat.test <- stat.test %>%
+ mutate(y.position = c(35,40,45))
+
+TT1_Str <- ggplot(P1_tots, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long")), y = trialTime.tot, color =  TBI_Non)) + 
+  geom_boxplot(outlier.shape = NA)+ 
+  geom_jitter(shape=16, position=position_jitter(0.2), alpha=0.4)+
+  scale_color_manual(values=c( "#D55E00", "#56B4E9", "#009E73")) +
+  scale_x_discrete(labels=c("Control","mTBI","PCS")) +
+  theme_minimal() + theme(legend.position="none")+
+  xlab(" ") + ylab("Part One Total Test Time (s)")+
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
+
+
+
+## P2
+P2 <- subset(STRdf, strpPart_Unity == 2)
+P2 <- P2[c(1,4,7)]
+P2_totalTime <- P2 %>% unite(ID, ID, TBI_Non, sep = "_")
+
+DT <- data.table(P2_totalTime)
+P2_tots <- setnames(DT[, sapply(.SD, function(x)  list(tot=sum(x, na.rm = T))), by=ID], c("ID", sapply(names(DT)[-1], paste0, c(".tot"))))
+P2_tots <-  P2_tots %>% separate(ID, c("ID", "group", "TBI_Non"))
+P2_tots <- P2_tots %>% unite(ID, ID, group, sep = "_")
+
+res.aov <- P2_tots %>% anova_test(trialTime.tot ~ TBI_Non)
+par(mfrow = (c(2, 2)))
+plot(res.aov)
+K_test_Pres <-  kruskal_test(trialTime.tot ~ TBI_Non, data = P2_tots)
+
+means <- P2_tots %>% group_by(TBI_Non) %>%
+  dplyr::summarise(Mean = mean(trialTime.tot, na.rm = T), SD = sd(trialTime.tot, na.rm = T))
+
+stat.test <- compare_means(
+ trialTime.tot ~ TBI_Non, data = P2_tots,
+ method = "wilcox.test"#, p.adjust.method = "holm"
+)
+stat.test <- stat.test %>%
+ mutate(y.position = c(35,40,45))
+
+TT2_Str <- ggplot(P2_tots, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long")), y = trialTime.tot, color =  TBI_Non)) + 
+  geom_boxplot(outlier.shape = NA)+ 
+  geom_jitter(shape=16, position=position_jitter(0.2), alpha=0.4)+
+  scale_color_manual(values=c( "#D55E00", "#56B4E9", "#009E73")) +
+  scale_x_discrete(labels=c("Control","mTBI","PCS")) +
+  theme_minimal() + theme(legend.position="none")+
+  xlab(" ") + ylab("Part Two Total Test Time (s)")+
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
+
+```
+
+```{r Sac_Latency, echo=FALSE, message=FALSE, warning=FALSE }
+## Pro Sac
+res.aov <- subset(STRdf, strpPart_Unity == 1) %>% anova_test(Saccade_Latency ~ TBI_Non)
+par(mfrow = (c(2, 2)))
+plot(res.aov)
+K_test_Pres <-  kruskal_test(Saccade_Latency ~ TBI_Non, data = subset(STRdf, strpPart_Unity == 1))
+
+means <- subset(STRdf, strpPart_Unity == 1) %>% group_by(TBI_Non) %>%
+  dplyr::summarise(Mean = mean(Saccade_Latency, na.rm = T), SD = sd(Saccade_Latency, na.rm = T))
+
+stat.test <- compare_means(
+ Saccade_Latency ~ TBI_Non, data = subset(STRdf, strpPart_Unity == 1),
+ method = "wilcox.test"#, p.adjust.method = "holm"
+)
+stat.test <- stat.test %>%
+ mutate(y.position = c(4,5,6))
+
+P1_Str <- ggplot(subset(STRdf, strpPart_Unity == 1), aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long")), y =   Saccade_Latency, color =  TBI_Non)) + 
+  geom_boxplot(outlier.shape = NA)+ 
+  geom_jitter(shape=16, position=position_jitter(0.2), alpha=0.4)+
+  scale_color_manual(values=c( "#D55E00", "#56B4E9", "#009E73")) +
+  scale_x_discrete(labels=c("Control","mTBI","PCS")) +
+  theme_minimal() + theme(legend.position="none")+
+  xlab(" ") + ylab("Part One Latency (s)")+
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
+
+
+
+## Anti Sac
+res.aov <- subset(STRdf, strpPart_Unity == 2) %>% anova_test(Saccade_Latency ~ TBI_Non)
+par(mfrow = (c(2, 2)))
+plot(res.aov)
+K_test_Pres <-  kruskal_test(Saccade_Latency ~ TBI_Non, data = subset(STRdf, strpPart_Unity == 2))
+
+means <- subset(STRdf, strpPart_Unity == 2) %>% group_by(TBI_Non) %>%
+  dplyr::summarise(Mean = mean(Saccade_Latency, na.rm = T), SD = sd(Saccade_Latency, na.rm = T))
+
+stat.test <- compare_means(
+ Saccade_Latency ~ TBI_Non, data = subset(STRdf, strpPart_Unity == 2),
+ method = "wilcox.test"#, p.adjust.method = "holm"
+)
+stat.test <- stat.test %>%
+ mutate(y.position = c(5,6,7))
+
+P2_Str <- ggplot(subset(STRdf, strpPart_Unity == 2), aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long")), y =   Saccade_Latency, color =  TBI_Non)) + 
+  geom_boxplot(outlier.shape = NA)+ 
+  geom_jitter(shape=16, position=position_jitter(0.2), alpha=0.4)+
+  scale_color_manual(values=c( "#D55E00", "#56B4E9", "#009E73")) +
+  scale_x_discrete(labels=c("Control","mTBI","PCS")) +
+  theme_minimal() + theme(legend.position="none")+
+  xlab(" ") + ylab("Part Two Latency (s)")+
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
+
+StrTimeLatPlots<- ggarrange(P1_Str , P2_Str, TT1_Str, TT2_Str, nrow=2, ncol=2,  labels = c( "A" ,"B", "C", "D"))
+ggsave("StrTimeLatPlots.png", width = 20, height = 20, units = "cm")
+
+```
+
+## VOR
+
+```{r VORData, echo=FALSE, message=FALSE, warning=FALSE}
+load("VOR_Healthy.Rda")
+load("Vor_ShortTerm.Rda")
+load("VOR_LongTerm.Rda")
+
+view(VOR_Healthy)
+view(Vor_ShortTerm)
+view(VOR_LongTerm)
+
+VOR_Healthy$ID <- paste(VOR_Healthy$ID, 1, sep = "_")
+Vor_ShortTerm$ID <- paste(Vor_ShortTerm$ID, 2, sep = "_")
+VOR_LongTerm$ID <- paste(VOR_LongTerm$ID, 3, sep = "_")
+VORdf <- rbind(VOR_Healthy, Vor_ShortTerm, VOR_LongTerm)
+
+# percental horzont saccs
+r_Full <- nrow(VORdf)
+n_H_Sac <- nrow(subset(VORdf, Horiz_Saccade_Number >= 1))
+N_Hor_Sac <- (n_H_Sac/r_Full)*100
+N_Hor_Sac
+# percental vert saccs
+n_V_Sac <- nrow(subset(VORdf, Vert_Saccade_Number >= 1))
+N_Ver_Sac <- (n_V_Sac/r_Full)*100
+N_Ver_Sac
+
+
+
+leveneTest(Gain ~ Pre_Post,       VORdf)
+leveneTest(Time_Max_Gain ~ Pre_Post, VORdf) 
+leveneTest(HVA_Mean_deg ~ Pre_Post,       VORdf)
+leveneTest(VVA_Mean_deg ~ Pre_Post,       VORdf)
+leveneTest(Horiz_Saccade_Number ~ Pre_Post, VORdf) 
+leveneTest(Vert_Saccade_Number ~ Pre_Post,       VORdf)
+leveneTest(BCEA_68_Log10 ~ Pre_Post,       VORdf)
+
+
+shapiro.test(VORdf$Gain)
+shapiro.test(VORdf$Time_Max_Gain)
+shapiro.test(VORdf$HVA_Mean_deg)
+shapiro.test(VORdf$VVA_Mean_deg)
+shapiro.test(VORdf$Horiz_Saccade_Number)
+shapiro.test(VORdf$Vert_Saccade_Number)
+shapiro.test(VORdf$BCEA_68_Log10)
+
+
+colNames <- c("ID",  "Gain", "Time to Maximum Gain (s)","Horizontal Visual Angle Error (deg)", "Vertical Visual Angle Error (deg)",  "Number Horizontal Saccades", "Number Vertical Saccades","BCEA Log10 (MinArc2)" ,"Pre_Post", "TBI_Non")
+testTitle <- "Summary Data for VOR"
+source("GetSummaryTables.R")
+GetSummaryTablesCIs(VORdf, colNames, testTitle) 
+```
+
+```{r VOR_BCEA, echo=FALSE, message=FALSE, warning=FALSE }
+res.aov <- VORdf %>% anova_test(BCEA_68_Log10 ~ TBI_Non)
+par(mfrow = (c(2, 2)))
+plot(res.aov)
+means <- VORdf %>% group_by(TBI_Non) %>%
+  dplyr::summarise(Mean = mean(BCEA_68_Log10, na.rm = T), SD = sd(BCEA_68_Log10, na.rm = T))
+
+stat.test <- compare_means(
+ BCEA_68_Log10 ~ TBI_Non, data = VORdf,
+ method = "t.test"#, p.adjust.method = "holm"
+)
+stat.test <- stat.test %>%
+ mutate(y.position = c(6,6.5,7.1))
+
+B_VOR <- ggplot(VORdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long")), y = BCEA_68_Log10, color = TBI_Non)) + 
+  geom_boxplot(outlier.shape = NA)+ 
+  geom_jitter(shape=16, position=position_jitter(0.2), alpha=0.4)+
+  scale_color_manual(values=c( "#D55E00", "#56B4E9", "#009E73")) +
+  scale_x_discrete(labels=c("Control","mTBI","PCS")) +
+  theme_minimal() + theme(legend.position="none")+
+  xlab(" ") + ylab("BCEA Log10 (MinArc2)")+
+  #geom_hline(yintercept=0, linetype="dashed", color="#5f6061")+
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
+
+```
+
+
+```{r VOR_HVA, echo=FALSE, message=FALSE, warning=FALSE }
+res.aov <- VORdf %>% anova_test(HVA_Mean_deg ~ TBI_Non)
+par(mfrow = (c(2, 2)))
+plot(res.aov)
+K_test_Pres <-  kruskal_test(HVA_Mean_deg ~ TBI_Non, data = VORdf)
+means <- VORdf %>% group_by(TBI_Non) %>%
+  dplyr::summarise(Mean = mean(HVA_Mean_deg, na.rm = T), SD = sd(HVA_Mean_deg, na.rm = T))
+
+stat.test <- compare_means(
+ HVA_Mean_deg ~ TBI_Non, data = VORdf,
+ method = "wilcox.test"#, p.adjust.method = "holm"
+)
+stat.test <- stat.test %>%
+ mutate(y.position = c(6,7,8.5))
+
+H_VOR <- ggplot(VORdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long")), y = HVA_Mean_deg, color = TBI_Non)) + 
+  geom_boxplot(outlier.shape = NA)+ 
+  geom_jitter(shape=16, position=position_jitter(0.2), alpha=0.4)+
+  scale_color_manual(values=c( "#D55E00", "#56B4E9", "#009E73")) +
+  scale_x_discrete(labels=c("Control","mTBI","PCS")) +
+  theme_minimal() + theme(legend.position="none")+
+  xlab(" ") + ylab("Horizontal Visual Angle Error (deg)")+
+  geom_hline(yintercept=0, linetype="dashed", color="#5f6061")+
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
+
+```
+
+
+```{r VOR_VVA, echo=FALSE, message=FALSE, warning=FALSE }
+res.aov <- VORdf %>% anova_test(VVA_Mean_deg ~ TBI_Non)
+par(mfrow = (c(2, 2)))
+plot(res.aov)
+K_test_Pres <-  kruskal_test(VVA_Mean_deg ~ TBI_Non, data = VORdf)
+means <- VORdf %>% group_by(TBI_Non) %>%
+  dplyr::summarise(Mean = mean(VVA_Mean_deg, na.rm = T), SD = sd(VVA_Mean_deg, na.rm = T))
+
+stat.test <- compare_means(
+ VVA_Mean_deg ~ TBI_Non, data = VORdf,
+ method = "t.test"#, p.adjust.method = "holm"
+)
+stat.test <- stat.test %>%
+ mutate(y.position = c(2,2.5,3.2))
+
+V_VOR <- ggplot(VORdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long")), y = VVA_Mean_deg, color = TBI_Non)) + 
+  geom_boxplot(outlier.shape = NA)+ 
+  geom_jitter(shape=16, position=position_jitter(0.2), alpha=0.4)+
+  scale_color_manual(values=c( "#D55E00", "#56B4E9", "#009E73")) +
+  scale_x_discrete(labels=c("Control","mTBI","PCS")) +
+  theme_minimal() + theme(legend.position="none")+
+  xlab(" ") + ylab("Vertical Visual Angle Error (deg)")+
+  geom_hline(yintercept=0, linetype="dashed", color="#5f6061")+
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
+
+```
+
+```{r VOR_Gain, echo=FALSE, message=FALSE, warning=FALSE }
+res.aov <- VORdf %>% anova_test(Gain ~ TBI_Non)
+par(mfrow = (c(2, 2)))
+plot(res.aov)
+K_test_Pres <-  kruskal_test(Gain ~ TBI_Non, data = VORdf)
+means <- VORdf %>% group_by(TBI_Non) %>%
+  dplyr::summarise(Mean = mean(Gain, na.rm = T), SD = sd(Gain, na.rm = T))
+
+stat.test <- compare_means(
+ Gain ~ TBI_Non, data = VORdf,
+ method = "wilcox.test"#, p.adjust.method = "holm"
+)
+stat.test <- stat.test %>%
+ mutate(y.position = c(1.5,1.6,1.75))
+
+G_VOR <- ggplot(VORdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long")), y = Gain, color = TBI_Non)) + 
+  geom_boxplot(outlier.shape = NA)+ 
+  geom_jitter(shape=16, position=position_jitter(0.2), alpha=0.4)+
+  scale_color_manual(values=c( "#D55E00", "#56B4E9", "#009E73")) +
+  scale_x_discrete(labels=c("Control","mTBI","PCS")) +
+  theme_minimal() + theme(legend.position="none")+
+  xlab(" ") + ylab("Gain")+
+  geom_hline(yintercept=1, linetype="dashed", color="#5f6061")+
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
+
+```
+
+```{r VOR_TimeGain, echo=FALSE, message=FALSE, warning=FALSE }
+res.aov <- VORdf %>% anova_test(Time_Max_Gain ~ TBI_Non)
+par(mfrow = (c(2, 2)))
+plot(res.aov)
+K_test_Pres <-  kruskal_test(Time_Max_Gain ~ TBI_Non, data = VORdf)
+means <- VORdf %>% group_by(TBI_Non) %>%
+  dplyr::summarise(Mean = mean(Time_Max_Gain, na.rm = T), SD = sd(Time_Max_Gain, na.rm = T))
+
+stat.test <- compare_means(
+ Time_Max_Gain ~ TBI_Non, data = VORdf,
+ method = "wilcox.test"#, p.adjust.method = "holm"
+)
+stat.test <- stat.test %>%
+ mutate(y.position = c(0.4,0.5, .6))
+
+TG_VOR <- ggplot(VORdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long")), y = Time_Max_Gain, color = TBI_Non)) + 
+  geom_boxplot(outlier.shape = NA)+ 
+  geom_jitter(shape=16, position=position_jitter(0.2), alpha=0.4)+
+  scale_color_manual(values=c( "#D55E00", "#56B4E9", "#009E73")) +
+  scale_x_discrete(labels=c("Control","mTBI","PCS")) +
+  theme_minimal() + theme(legend.position="none")+
+  xlab(" ") + ylab("Time to Maximum Gain (s)")+
+  #geom_hline(yintercept=1, linetype="dashed", color="#5f6061")+
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
+
+```
+
+```{r VOR_HS, echo=FALSE, message=FALSE, warning=FALSE }
+res.aov <- VORdf %>% anova_test(Horiz_Saccade_Number ~ TBI_Non)
+par(mfrow = (c(2, 2)))
+plot(res.aov)
+K_test_Pres <-  kruskal_test(Horiz_Saccade_Number ~ TBI_Non, data = VORdf)
+means <- VORdf %>% group_by(TBI_Non) %>%
+  dplyr::summarise(Mean = mean(Horiz_Saccade_Number, na.rm = T), SD = sd(Horiz_Saccade_Number, na.rm = T))
+
+stat.test <- compare_means(
+ Horiz_Saccade_Number ~ TBI_Non, data = VORdf,
+ method = "wilcox.test"#, p.adjust.method = "holm"
+)
+stat.test <- stat.test %>%
+ mutate(y.position = c(4,4.5,5))
+
+HS_VOR <- ggplot(VORdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long")), y = Horiz_Saccade_Number, color = TBI_Non)) + 
+  geom_boxplot(outlier.shape = NA)+ 
+  geom_jitter(shape=16, position=position_jitter(0.2), alpha=0.4)+
+  scale_color_manual(values=c( "#D55E00", "#56B4E9", "#009E73")) +
+  scale_x_discrete(labels=c("Control","mTBI","PCS")) +
+  theme_minimal() + theme(legend.position="none")+
+  xlab(" ") + ylab("Number of Horizontal Saccades")+
+  #geom_hline(yintercept=1, linetype="dashed", color="#5f6061")+
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
+
+VORPlots <- ggarrange(B_VOR,H_VOR, V_VOR, G_VOR, TG_VOR, HS_VOR,  labels = c( "A" , "B", "C", "D", "E", "F"))
+ggsave("VORPlots.png", width = 20, height = 20, units = "cm")
 
 ```
