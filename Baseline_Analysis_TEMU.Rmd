@@ -321,6 +321,7 @@ stat.test <- compare_means(
  BCEA_68_Log10 ~ TBI_Non, data = FIXdf,
  method = "t.test"#, p.adjust.method = "holm"
 )
+
 stat.test <- stat.test %>%
  mutate(y.position = c(5, 5.5, 6))
 
