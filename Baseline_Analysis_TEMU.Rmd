@@ -58,21 +58,21 @@ load("Ego_LongTerm.Rda")
 
 Ego_Healthy$ID <- paste(Ego_Healthy$ID, 1, sep = "_")
 Ego_ShortTerm$ID <- paste(Ego_ShortTerm$ID, 2, sep = "_")
-Ego_ShortTerm <- Ego_ShortTerm[-c(4)]
 Ego_LongTerm$ID <- paste(Ego_LongTerm$ID, 3, sep = "_")
 
 EGOdf <- rbind(Ego_Healthy, Ego_ShortTerm, Ego_LongTerm)
+save(EGOdf,file="EGOdf.Rda")
 
 
 leveneTest(Error_X_mm ~ Pre_Post, EGOdf)
 leveneTest(Error_Y_mm ~ Pre_Post, EGOdf) 
-leveneTest(X_Shoot_mm ~ Pre_Post, EGOdf)
-leveneTest(Y_Shoot_mm ~ Pre_Post, EGOdf)
+leveneTest(X_Shoot~ Pre_Post, EGOdf)
+leveneTest(Y_Shoot~ Pre_Post, EGOdf)
 
 shapiro.test(EGOdf$Error_X_mm)
 shapiro.test(EGOdf$Error_Y_mm)
-shapiro.test(EGOdf$X_Shoot_mm)
-shapiro.test(EGOdf$Y_Shoot_mm)
+shapiro.test(EGOdf$X_Shoot)
+shapiro.test(EGOdf$Y_Shoot)
 
 colNames <- c("ID", "Horizontal Error (mm)", "Vertical Error (mm)","Horizontal Overshoots", "Vertical Overshoots", "Pre_Post", "TBI_Non")
 testTitle <- "Summary Data for Egocentric Localisation"
@@ -98,8 +98,8 @@ EGO_Vis <- ggplot(EGOdf_VIS, aes(Error_X_mm, Error_Y_mm), show.legend = FALSE ) 
   xlab("Horizontal Error (mm)") + ylab("Vertical Error (mm)")  + #
   geom_point(aes(colour=fct_rev(TBI_Non)), alpha = 0.4, show.legend = FALSE ) + #, shape=Pre_Post
   theme_minimal() +
-  #geom_density_2d( aes(color = TBI_Non), alpha = 0.6,bins = 10 , show.legend = FALSE) + #
-  stat_density_2d_filled( aes(color = fct_rev(TBI_Non)), alpha = 0.5,bins = 10 , show.legend = FALSE) + #
+  geom_density_2d( aes(color = TBI_Non), alpha = 0.6,bins = 10 , show.legend = FALSE) + #
+  #stat_density_2d_filled( aes(color = fct_rev(TBI_Non)), alpha = 0.5,bins = 10 , show.legend = FALSE) + #
   facet_grid(~ TBI_Non ) +
   theme(aspect.ratio = 1)
 ggsave("EGO_Vis.png", width = 20, height = 7, units = "cm")
@@ -107,15 +107,14 @@ ggsave("EGO_Vis.png", width = 20, height = 7, units = "cm")
 ```
 
 ```{r EgoModel_X, echo=FALSE, message=FALSE, warning=FALSE }
-res.aov <- EGOdf %>% anova_test(Error_X_mm ~ TBI_Non)
-par(mfrow = (c(2, 2)))
-plot(res.aov)
-means <- EGOdf %>% group_by(TBI_Non) %>%
-  dplyr::summarise(Mean = mean(Error_X_mm, na.rm = T), SD = sd(Error_X_mm, na.rm = T))
+K_test_Pres <-  kruskal.test(Error_X_mm ~ TBI_Non, data = EGOdf)
+
+diffs <- EGOdf %>% group_by(TBI_Non) %>%
+  dplyr::summarise(Medians = median(Error_X_mm, na.rm = T), Mean = mean(Error_X_mm, na.rm = T), SD = sd(Error_X_mm, na.rm = T))
 
 stat.test <- compare_means(
  Error_X_mm ~ TBI_Non, data = EGOdf,
- method = "t.test"#, p.adjust.method = "holm"
+ method = "wilcox.test", p.adjust.method = "holm"
 )
 stat.test <- stat.test %>%
  mutate(y.position = c(250, 300, 350))
@@ -135,17 +134,15 @@ H_Ego <- ggplot(EGOdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long"
 
 
 ```{r EgoModel_Y, echo=FALSE}
-# anova on difference bw Pre groups
-res.aov <- EGOdf %>% anova_test(Error_Y_mm ~ TBI_Non)
-par(mfrow = (c(2, 2)))
-plot(res.aov)
+K_test_Pres <-  kruskal.test(Error_Y_mm ~ TBI_Non, data = EGOdf)
 
-means <- EGOdf %>% group_by(TBI_Non) %>%
-  dplyr::summarise(Mean = mean(Error_Y_mm, na.rm = T), SD = sd(Error_Y_mm, na.rm = T))
+diffs <- EGOdf %>% group_by(TBI_Non) %>%
+  dplyr::summarise(Medians = median(Error_Y_mm, na.rm = T), Mean = mean(Error_Y_mm, na.rm = T), SD = sd(Error_Y_mm, na.rm = T))
+
 
 stat.test <- compare_means(
  Error_Y_mm ~ TBI_Non, data = EGOdf,
- method = "t.test"#, p.adjust.method = "holm"
+ method = "wilcox.test", p.adjust.method = "holm"
 )
 stat.test <- stat.test %>%
  mutate(y.position = c(250, 300, 350))
@@ -169,7 +166,7 @@ ggsave("EgoPlots.png", width = 30, height = 15, units = "cm")
 ```{r Ego_Shoots, echo=FALSE}
 # still over and undershooting?
 X_Shoots <- EGOdf#EGOdf[c(1,7)]
-X_Shoots$X_Under <- ifelse(X_Shoots$X_Shoot_mm > 0, 0, 1)
+X_Shoots$X_Under <- ifelse(X_Shoots$X_Shoot > 0, 0, 1)
 colnames(X_Shoots)[4] <- "X_Over"
 
 PropXOver <- X_Shoots %>% group_by(ID) %>%
@@ -186,7 +183,7 @@ X_Axis <- prop.test(x=c(sum(X_Shoots$X_Over), sum(X_Shoots$X_Under)), n = c(nrow
 X_Axis
 # Y over/under
 Y_Shoots <- EGOdf
-Y_Shoots$Y_Under <- ifelse(Y_Shoots$Y_Shoot_mm > 0, 0, 1)  
+Y_Shoots$Y_Under <- ifelse(Y_Shoots$Y_Shoot > 0, 0, 1)  
 colnames(Y_Shoots)[5] <- "Y_Over"
 PropYOver <- Y_Shoots %>% group_by(ID) %>%
   dplyr::summarise(PropPos = mean(Y_Over), CorrSD = sd(Y_Over), Num = n(), CorrSE = CorrSD/n())
@@ -209,19 +206,19 @@ PropXUnderTBI <- X_Shoots %>% group_by(TBI_Non) %>%
 PropXUnderTBI$TBI_Non <- factor(PropXUnderTBI$TBI_Non, levels = c("Non", "Short", "Long"))
 X_OverPlot <- ggplot(PropXUnderTBI  ) + geom_col(aes(x=TBI_Non, y=PropPos), fill=myCols3, alpha = 0.7) + geom_errorbar(aes(x = TBI_Non, ymin = PropPos-CorrSE*1.96, ymax = PropPos + CorrSE*1.96), width=.2, position=position_dodge(.9)) + 
   labs(x = "", y = "Proportion Horizontal Undershoots") + geom_hline(aes(slope = 0, yintercept = 0.5), linetype="dashed" ) +
-  theme_minimal() + scale_x_discrete(labels=c("Non" = "Control", "Short" = "mTBI", "Long"= "PCS")) 
+  theme_minimal() + scale_x_discrete(labels=c("Non" = "Control", "Short" = "mTBI", "Long"= "PCS")) + ylim(0,1)
 
 # differences bw groups
 propX_TBI <- prop.test(x=c((PropXUnderTBI$Num[1] * PropXUnderTBI$PropPos[1]),(PropXUnderTBI$Num[2] * PropXUnderTBI$PropPos[2]), (PropXUnderTBI$Num[3] * PropXUnderTBI$PropPos[3])),n=c(PropXUnderTBI$Num[1],PropXUnderTBI$Num[2] ,PropXUnderTBI$Num[3])) 
 
 # Diff Bw TBI and non for Y undershoots?
 PropYUnderTBI <- Y_Shoots %>% group_by(TBI_Non) %>%
-  dplyr::summarise(PropPos = mean(Y_Under), CorrSD = sd(Y_Under), Num = n(), CorrSE = CorrSD/20)
+  dplyr::summarise(PropPos = mean(Y_Under), CorrSD = sd(Y_Under), Num = n(), CorrSE = CorrSD/115)
  
 PropYUnderTBI$TBI_Non <- factor(PropYUnderTBI$TBI_Non, levels = c("Non", "Short", "Long"))
 Y_OverPlot <- ggplot(PropYUnderTBI) + geom_col(aes(x=TBI_Non, y=PropPos), fill=myCols3, alpha = 0.7) + geom_errorbar(aes(x = TBI_Non, ymin = PropPos-CorrSE*1.96, ymax = PropPos + CorrSE*1.96), width=.2, position=position_dodge(.9))  + 
   labs(x = "", y = "Proportion Vertical Undershoots") + geom_hline(aes(slope = 0, yintercept = 0.5), linetype="dashed" ) +
-  theme_minimal() +scale_x_discrete(labels=c("Non" = "Control", "Short" = "mTBI", "Long"= "PCS")) 
+  theme_minimal() +scale_x_discrete(labels=c("Non" = "Control", "Short" = "mTBI", "Long"= "PCS")) + ylim(0,1)
 
 propY_TBI <- prop.test(x=c((PropYUnderTBI$Num[1] * PropYUnderTBI$PropPos[1]),(PropYUnderTBI$Num[2] * PropYUnderTBI$PropPos[2]),(PropYUnderTBI$Num[3] * PropYUnderTBI$PropPos[3])),n=c(PropYUnderTBI$Num[1],PropYUnderTBI$Num[2],PropYUnderTBI$Num[3] )) 
 
@@ -237,13 +234,19 @@ load("Fix_Healthy.Rda")
 load("Fix_ShortTerm.Rda")
 load("Fix_LongTerm.Rda")
 
-Fix_Healthy$ID <- paste(Fix_Healthy$ID, 1, sep = "_")
-Fix_ShortTerm$ID <- paste(Fix_ShortTerm$ID, 2, sep = "_")
-Fix_ShortTerm <- Fix_ShortTerm[-c(4)]
-Fix_LongTerm$ID <- paste(Fix_LongTerm$ID, 3, sep = "_")
-Fix_LongTerm <- Fix_LongTerm[-c(4)]
-FIXdf <- rbind(Fix_Healthy, Fix_ShortTerm, Fix_LongTerm)
+#view(Fix_Healthy)
+#view(Fix_ShortTerm)
+#view(Fix_LongTerm)
 
+Fix_Healthy$ID <- paste(Fix_Healthy$ID, 1, sep = "_")
+Fix_Healthy$BCEA_68_Log10 <- log10(Fix_Healthy$BCEA_68_degsq)
+Fix_Healthy <- Fix_Healthy[c(1,2,4:8)]
+Fix_ShortTerm$ID <- paste(Fix_ShortTerm$ID, 2, sep = "_")
+Fix_LongTerm$ID <- paste(Fix_LongTerm$ID, 3, sep = "_")
+FIXdf <- rbind(Fix_Healthy, Fix_ShortTerm, Fix_LongTerm)
+save(FIXdf,file="FIXdf.Rda")
+
+Fix_LongTerm$BCEA_68_Log10
 
 leveneTest(HVA_Mean_deg ~ Pre_Post, FIXdf)
 leveneTest(VVA_Mean_deg ~ Pre_Post, FIXdf) 
@@ -261,15 +264,14 @@ GetSummaryTablesCIs(FIXdf, colNames, testTitle)
 ```
 
 ```{r FIXModel_X, echo=FALSE, message=FALSE, warning=FALSE }
-res.aov <- FIXdf %>% anova_test(HVA_Mean_deg ~ TBI_Non)
-par(mfrow = (c(2, 2)))
-plot(res.aov)
-means <- FIXdf %>% group_by(TBI_Non) %>%
-  dplyr::summarise(Mean = mean(HVA_Mean_deg, na.rm = T), SD = sd(HVA_Mean_deg, na.rm = T))
+# difference bw Pre groups
+K_test_Pres <-  kruskal.test(HVA_Mean_deg ~ TBI_Non, data = FIXdf)
+diffs <- FIXdf %>% group_by(TBI_Non) %>%
+  dplyr::summarise(Medians = median(HVA_Mean_deg, na.rm = T), Mean = mean(HVA_Mean_deg, na.rm = T), SD = sd(HVA_Mean_deg, na.rm = T))
 
 stat.test <- compare_means(
  HVA_Mean_deg ~ TBI_Non, data = FIXdf,
- method = "t.test"#, p.adjust.method = "holm"
+ method = "wilcox.test", p.adjust.method = "holm"
 )
 stat.test <- stat.test %>%
  mutate(y.position = c(1, 1.3, 1.6))
@@ -285,15 +287,14 @@ H_Fix <- ggplot(FIXdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long"
   stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
 ```
 ```{r FIXModel_Y, echo=FALSE, message=FALSE, warning=FALSE }
-res.aov <- FIXdf %>% anova_test(VVA_Mean_deg ~ TBI_Non)
-par(mfrow = (c(2, 2)))
-plot(res.aov)
-means <- FIXdf %>% group_by(TBI_Non) %>%
-  dplyr::summarise(Mean = mean(VVA_Mean_deg, na.rm = T), SD = sd(VVA_Mean_deg, na.rm = T))
+# difference bw Pre groups
+K_test_Pres <-  kruskal.test(VVA_Mean_deg ~ TBI_Non, data = FIXdf)
+diffs <- FIXdf %>% group_by(TBI_Non) %>%
+  dplyr::summarise(Medians = median(VVA_Mean_deg, na.rm = T), Mean = mean(VVA_Mean_deg, na.rm = T), SD = sd(VVA_Mean_deg, na.rm = T))
 
 stat.test <- compare_means(
  VVA_Mean_deg ~ TBI_Non, data = FIXdf,
- method = "t.test"#, p.adjust.method = "holm"
+ method = "wilcox.test"#, p.adjust.method = "holm"
 )
 stat.test <- stat.test %>%
  mutate(y.position = c(1.5, 1.8, 2.2))
@@ -311,15 +312,13 @@ V_Fix <- ggplot(FIXdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long"
 ```
 
 ```{r FIX_BCEA, echo=FALSE, message=FALSE, warning=FALSE }
-res.aov <- FIXdf %>% anova_test(BCEA_68_Log10 ~ TBI_Non)
-par(mfrow = (c(2, 2)))
-plot(res.aov)
-means <- FIXdf %>% group_by(TBI_Non) %>%
-  dplyr::summarise(Mean = mean(BCEA_68_Log10, na.rm = T), SD = sd(BCEA_68_Log10, na.rm = T))
+K_test_Pres <-  kruskal.test(BCEA_68_Log10 ~ TBI_Non, data = FIXdf)
+diffs <- FIXdf %>% group_by(TBI_Non) %>%
+  dplyr::summarise(Medians = median(BCEA_68_Log10, na.rm = T), Mean = mean(BCEA_68_Log10, na.rm = T), SD = sd(BCEA_68_Log10, na.rm = T))
 
 stat.test <- compare_means(
  BCEA_68_Log10 ~ TBI_Non, data = FIXdf,
- method = "t.test"#, p.adjust.method = "holm"
+ method = "wilcox.test"#, p.adjust.method = "holm"
 )
 
 stat.test <- stat.test %>%
@@ -350,8 +349,9 @@ load("Pur_LongTerm.Rda")
 Pur_Healthy$ID <- paste(Pur_Healthy$ID, 1, sep = "_")
 Pur_ShortTerm$ID <- paste(Pur_ShortTerm$ID, 2, sep = "_")
 Pur_LongTerm$ID <- paste(Pur_LongTerm$ID, 3, sep = "_")
-Pur_LongTerm <- Pur_LongTerm[-c(8,9)]
+Pur_LongTerm <- Pur_LongTerm[-c(9,10)]
 PURdf <- rbind(Pur_Healthy, Pur_ShortTerm, Pur_LongTerm)
+save(PURdf,file="PURdf.Rda")
 
 
 leveneTest(Num_Sacs ~ Pre_Post, PURdf)
@@ -374,17 +374,37 @@ colNames <- c("ID", "Number of Saccades", "Horizontal Visual Angle Error (deg)",
 testTitle <- "Summary Data for Pursuits"
 source("GetSummaryTables.R")
 GetSummaryTablesCIs(PURdf, colNames, testTitle) 
+
+PURdf$Num_Sacs
+# percental horzont saccs
+r_Full <- nrow(PURdf)
+n_H_Sac <- nrow(subset(PURdf, Num_Sacs >= 1))
+N_Hor_Sac <- (n_H_Sac/r_Full)*100
+N_Hor_Sac
+
+r_Full_Non <- nrow(subset(PURdf, TBI_Non %like% "Non"))
+n_H_Sac_Non <- nrow(subset(subset(PURdf, TBI_Non %like% "Non"), Num_Sacs >= 1))
+N_Hor_Sac_Non <- (n_H_Sac_Non/r_Full_Non)*100
+N_Hor_Sac_Non
+
+r_Full_TBI <- nrow(subset(PURdf, TBI_Non %like% "Short"))
+n_H_Sac_TBI <- nrow(subset(subset(PURdf, TBI_Non %like% "Short"), Num_Sacs >= 1))
+N_Hor_Sac_TBI <- (n_H_Sac_TBI/r_Full_TBI)*100
+N_Hor_Sac_TBI
+
+r_Full_PCS <- nrow(subset(PURdf, TBI_Non %like% "Long"))
+n_H_Sac_PCS <- nrow(subset(subset(PURdf, TBI_Non %like% "Long"), Num_Sacs >= 1))
+N_Hor_Sac_PCS <- (n_H_Sac_PCS/r_Full_PCS)*100
+N_Hor_Sac_PCS
 ```
 
 ```{r T_Pur, echo=FALSE, message=FALSE, warning=FALSE }
-res.aov <- PURdf %>% anova_test(TotalVA_Error_Mean_deg ~ TBI_Non)
-par(mfrow = (c(2, 2)))
-plot(res.aov)
-means <- PURdf %>% group_by(TBI_Non) %>%
-  dplyr::summarise(Mean = mean(TotalVA_Error_Mean_deg, na.rm = T), SD = sd(TotalVA_Error_Mean_deg, na.rm = T))
+K_test_Pres <-  kruskal.test(TotalVA_Error_Mean_deg ~ TBI_Non, data = PURdf)
+diffs <- PURdf %>% group_by(TBI_Non) %>%
+  dplyr::summarise(Medians = median(TotalVA_Error_Mean_deg, na.rm = T), Mean = mean(TotalVA_Error_Mean_deg, na.rm = T), SD = sd(TotalVA_Error_Mean_deg, na.rm = T))
 
 stat.test <- compare_means(
- TotalVA_Error_Mean_deg ~ TBI_Non, data = PURdf, method = "t.test")#, p.adjust.method = "holm"
+ TotalVA_Error_Mean_deg ~ TBI_Non, data = PURdf, method = "t.test", p.adjust.method = "holm")#
 stat.test <- stat.test %>%
  mutate(y.position = c(0.8, 1, 1.3))
 
@@ -401,14 +421,12 @@ T_Pur <- ggplot(PURdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long"
 ```
 
 ```{r H_Pur, echo=FALSE, message=FALSE, warning=FALSE }
-res.aov <- PURdf %>% anova_test(HVA_Error_Mean_deg ~ TBI_Non)
-par(mfrow = (c(2, 2)))
-plot(res.aov)
-means <- PURdf %>% group_by(TBI_Non) %>%
-  dplyr::summarise(Mean = mean(HVA_Error_Mean_deg, na.rm = T), SD = sd(HVA_Error_Mean_deg, na.rm = T))
+K_test_Pres <-  kruskal.test(HVA_Error_Mean_deg ~ TBI_Non, data = PURdf)
+diffs <- PURdf %>% group_by(TBI_Non) %>%
+  dplyr::summarise(Medians = median(HVA_Error_Mean_deg, na.rm = T), Mean = mean(HVA_Error_Mean_deg, na.rm = T), SD = sd(HVA_Error_Mean_deg, na.rm = T))
 
 stat.test <- compare_means(
- HVA_Error_Mean_deg ~ TBI_Non, data = PURdf, method = "t.test")#, p.adjust.method = "holm"
+ HVA_Error_Mean_deg ~ TBI_Non, data = PURdf, method = "wilcox.test", p.adjust.method = "holm")
 stat.test <- stat.test %>%
  mutate(y.position = c( 1.3, 1.6, 1.9))
 
@@ -424,14 +442,13 @@ H_Pur <- ggplot(PURdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long"
 
 ```
 ```{r V_Pur, echo=FALSE, message=FALSE, warning=FALSE }
-res.aov <- PURdf %>% anova_test(VVA_Error_Mean_deg ~ TBI_Non)
-par(mfrow = (c(2, 2)))
-plot(res.aov)
-means <- PURdf %>% group_by(TBI_Non) %>%
-  dplyr::summarise(Mean = mean(VVA_Error_Mean_deg, na.rm = T), SD = sd(VVA_Error_Mean_deg, na.rm = T))
+K_test_Pres <-  kruskal.test(VVA_Error_Mean_deg ~ TBI_Non, data = PURdf)
+diffs <- PURdf %>% group_by(TBI_Non) %>%
+  dplyr::summarise(Medians = median(VVA_Error_Mean_deg, na.rm = T), Mean = mean(VVA_Error_Mean_deg, na.rm = T), SD = sd(VVA_Error_Mean_deg, na.rm = T))
+
 
 stat.test <- compare_means(
- VVA_Error_Mean_deg ~ TBI_Non, data = PURdf, method = "t.test")#, p.adjust.method = "holm"
+ VVA_Error_Mean_deg ~ TBI_Non, data = PURdf, method = "wilcox.test", p.adjust.method = "holm")
 stat.test <- stat.test %>%
  mutate(y.position = c( 2.8, 3.2, 3.7))
 
@@ -451,16 +468,12 @@ ggsave("PurPlots.png", width = 22, height = 20, units = "cm")
 ```
 
 ```{r T_Gain, echo=FALSE, message=FALSE, warning=FALSE }
-res.aov <- PURdf %>% anova_test(Gain_Total ~ TBI_Non)
-par(mfrow = (c(2, 2)))
-plot(res.aov)
-K_test_Pres <-  kruskal_test(Gain_Total ~ TBI_Non, data = PURdf)
-
-means <- PURdf %>% group_by(TBI_Non) %>%
-  dplyr::summarise(Mean = mean(Gain_Total, na.rm = T), SD = sd(Gain_Total, na.rm = T))
+K_test_Pres <-  kruskal.test(Gain_Total ~ TBI_Non, data = PURdf)
+diffs <- PURdf %>% group_by(TBI_Non) %>%
+  dplyr::summarise(Medians = median(Gain_Total, na.rm = T), Mean = mean(Gain_Total, na.rm = T), SD = sd(Gain_Total, na.rm = T))
 
 stat.test <- compare_means(
- Gain_Total ~ TBI_Non, data = PURdf, method = "wilcox.test")#, p.adjust.method = "holm"
+ Gain_Total ~ TBI_Non, data = PURdf, method = "wilcox.test", p.adjust.method = "holm")#
 stat.test <- stat.test %>%
  mutate(y.position = c(1.1, 1.15,1.2))
 
@@ -477,16 +490,13 @@ T_Gain <- ggplot(PURdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long
 ```
 
 ```{r H_Gain, echo=FALSE, message=FALSE, warning=FALSE }
-res.aov <- PURdf %>% anova_test(Gain_Horiz ~ TBI_Non)
-par(mfrow = (c(2, 2)))
-plot(res.aov)
-K_test_Pres <-  kruskal_test(Gain_Horiz ~ TBI_Non, data = PURdf)
+K_test_Pres <-  kruskal.test(Gain_Horiz ~ TBI_Non, data = PURdf)
+diffs <- PURdf %>% group_by(TBI_Non) %>%
+  dplyr::summarise(Medians = median(Gain_Horiz, na.rm = T), Mean = mean(Gain_Horiz, na.rm = T), SD = sd(Gain_Horiz, na.rm = T))
 
-means <- PURdf %>% group_by(TBI_Non) %>%
-  dplyr::summarise(Mean = mean(Gain_Horiz, na.rm = T), SD = sd(Gain_Horiz, na.rm = T))
 
 stat.test <- compare_means(
- Gain_Horiz ~ TBI_Non, data = PURdf, method = "wilcox.test")#, p.adjust.method = "holm"
+ Gain_Horiz ~ TBI_Non, data = PURdf, method = "wilcox.test", p.adjust.method = "holm")#
 stat.test <- stat.test %>%
  mutate(y.position = c(1.8, 1.9,2))
 
@@ -503,16 +513,13 @@ H_Gain <- ggplot(PURdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long
 ```
 
 ```{r V_Gain, echo=FALSE, message=FALSE, warning=FALSE }
-res.aov <- PURdf %>% anova_test(Gain_Vert ~ TBI_Non)
-par(mfrow = (c(2, 2)))
-plot(res.aov)
-K_test_Pres <-  kruskal_test(Gain_Vert ~ TBI_Non, data = PURdf)
+K_test_Pres <-  kruskal.test(Gain_Vert ~ TBI_Non, data = PURdf)
+diffs <- PURdf %>% group_by(TBI_Non) %>%
+  dplyr::summarise(Medians = median(Gain_Vert, na.rm = T), Mean = mean(Gain_Vert, na.rm = T), SD = sd(Gain_Vert, na.rm = T))
 
-means <- PURdf %>% group_by(TBI_Non) %>%
-  dplyr::summarise(Mean = mean(Gain_Vert, na.rm = T), SD = sd(Gain_Vert, na.rm = T))
 
 stat.test <- compare_means(
- Gain_Vert ~ TBI_Non, data = PURdf, method = "wilcox.test")#, p.adjust.method = "holm"
+ Gain_Vert ~ TBI_Non, data = PURdf, method = "wilcox.test", p.adjust.method = "holm")#
 stat.test <- stat.test %>%
  mutate(y.position = c(1.8, 1.9,2))
 
@@ -529,16 +536,13 @@ V_Gain <- ggplot(PURdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long
 ```
 
 ```{r N_Sacs, echo=FALSE, message=FALSE, warning=FALSE }
-res.aov <- PURdf %>% anova_test(Num_Sacs ~ TBI_Non)
-par(mfrow = (c(2, 2)))
-plot(res.aov)
-K_test_Pres <-  kruskal_test(Num_Sacs ~ TBI_Non, data = PURdf)
+K_test_Pres <-  kruskal.test(Num_Sacs ~ TBI_Non, data = PURdf)
+diffs <- PURdf %>% group_by(TBI_Non) %>%
+  dplyr::summarise(Medians = median(Num_Sacs, na.rm = T), Mean = mean(Num_Sacs, na.rm = T), SD = sd(Num_Sacs, na.rm = T))
 
-means <- PURdf %>% group_by(TBI_Non) %>%
-  dplyr::summarise(Mean = mean(Num_Sacs, na.rm = T), SD = sd(Num_Sacs, na.rm = T))
 
 stat.test <- compare_means(
- Num_Sacs ~ TBI_Non, data = PURdf, method = "wilcox.test")#, p.adjust.method = "holm"
+ Num_Sacs ~ TBI_Non, data = PURdf, method = "wilcox.test", p.adjust.method = "holm")#
 stat.test <- stat.test %>%
  mutate(y.position = c(4,6,8))
 
@@ -568,13 +572,13 @@ load("Sac_LongTerm.Rda")
 #view(Sac_LongTerm)
 
 Sac_Healthy$ID <- paste(Sac_Healthy$ID, 1, sep = "_")
-colnames(Sac_Healthy)[colnames(Sac_Healthy) == 'Test_Corr' ] <- 'Test_Corr_R'
-
+colnames(Sac_Healthy)[colnames(Sac_Healthy) == 'Test_Corr' ] <- 'TargType_Unity'
+Sac_Healthy <- Sac_Healthy[-c(5,6,7)]
 Sac_ShortTerm$ID <- paste(Sac_ShortTerm$ID, 2, sep = "_")
-Sac_ShortTerm <- Sac_ShortTerm[-c(4)]
 Sac_LongTerm$ID <- paste(Sac_LongTerm$ID, 3, sep = "_")
-Sac_LongTerm <- Sac_LongTerm[-c(4,6)]
+Sac_LongTerm <- Sac_LongTerm[-c(6)]
 SACdf <- rbind(Sac_Healthy, Sac_ShortTerm, Sac_LongTerm)
+save(SACdf,file="SACdf.Rda")
 
 
 leveneTest(Test_Corr_R ~ Pre_Post,       SACdf)
@@ -595,25 +599,22 @@ GetSummaryTablesCIs(SACdf, colNames, testTitle)
 
 ```{r Sac_Trials Corr, echo=FALSE, message=FALSE, warning=FALSE }
 ## Pro Sac
-res.aov <- subset(SACdf, TargType_Unity %like% "ProSac") %>% anova_test(Test_Corr_R ~ TBI_Non)
-par(mfrow = (c(2, 2)))
-plot(res.aov)
 K_test_Pres <-  kruskal_test(Test_Corr_R ~ TBI_Non, data = subset(SACdf, TargType_Unity %like% "ProSac"))
+diffs <- subset(SACdf, TargType_Unity %like% "ProSac") %>% group_by(TBI_Non) %>%
+  dplyr::summarise(Medians = median(Test_Corr_R, na.rm = T), Mean = mean(Test_Corr_R, na.rm = T), SD = sd(Test_Corr_R, na.rm = T),  CorrSE = SD/115)
 
-means <- subset(SACdf, TargType_Unity %like% "ProSac") %>% group_by(TBI_Non) %>%
-  dplyr::summarise(Mean = mean(Test_Corr_R, na.rm = T), SD = sd(Test_Corr_R, na.rm = T),  CorrSE = SD/115)
 
 stat.test <- compare_means(
  Test_Corr_R ~ TBI_Non, data = subset(SACdf, TargType_Unity %like% "ProSac"),
- method = "wilcox.test"#, p.adjust.method = "holm"
+ method = "wilcox.test", p.adjust.method = "holm"
 )
 stat.test <- stat.test %>%
  mutate(y.position = c(0.90, .95, 1))
 
-PT_Sac <- ggbarplot(means, x = "TBI_Non", y = "Mean", 
+PT_Sac <- ggbarplot(diffs, x = "TBI_Non", y = "Mean", 
           color = "TBI_Non",fill = "TBI_Non", palette = myCols3,  #add = "jitter",
           order = c("Non", "Short", "Long"),
-          ylab = "Proportion of Pro-Saccade Trials Performed Correctly", xlab = " ") + 
+          ylab = "Proportion of Pro-Saccade Trials\nPerformed Correctly", xlab = " ") + 
           scale_x_discrete(labels=c("Control","mTBI","PCS")) +
   geom_errorbar(aes(x= TBI_Non, ymin= Mean-CorrSE*1.96, ymax = Mean + CorrSE*1.96), width=.2, position=position_dodge(.9)) +
           theme(legend.position = "none")+
@@ -622,25 +623,23 @@ PT_Sac <- ggbarplot(means, x = "TBI_Non", y = "Mean",
 
 
 ## Anti Sac
-res.aov <- subset(SACdf, TargType_Unity %like% "AntiSac") %>% anova_test(Test_Corr_R ~ TBI_Non)
-par(mfrow = (c(2, 2)))
-plot(res.aov)
 K_test_Pres <-  kruskal_test(Test_Corr_R ~ TBI_Non, data = subset(SACdf, TargType_Unity %like% "AntiSac"))
 
-means <- subset(SACdf, TargType_Unity %like% "AntiSac") %>% group_by(TBI_Non) %>%
-  dplyr::summarise(Mean = mean(Test_Corr_R, na.rm = T), SD = sd(Test_Corr_R, na.rm = T),  CorrSE = SD/115)
+diffs <- subset(SACdf, TargType_Unity %like% "AntiSac") %>% group_by(TBI_Non) %>%
+  dplyr::summarise(Medians = median(Test_Corr_R, na.rm = T), Mean = mean(Test_Corr_R, na.rm = T), SD = sd(Test_Corr_R, na.rm = T),  CorrSE = SD/115)
+
 
 stat.test <- compare_means(
  Test_Corr_R ~ TBI_Non, data = subset(SACdf, TargType_Unity %like% "AntiSac"),
- method = "wilcox.test"#, p.adjust.method = "holm"
+ method = "wilcox.test", p.adjust.method = "holm"
 )
 stat.test <- stat.test %>%
  mutate(y.position = c(0.90, .95, 1))
 
-AT_Sac <- ggbarplot(means, x = "TBI_Non", y = "Mean", 
+AT_Sac <- ggbarplot(diffs, x = "TBI_Non", y = "Mean", 
           color = "TBI_Non", fill = "TBI_Non", palette = myCols3, 
           order = c("Non", "Short", "Long"),
-          ylab = "Proportion of Anti-Saccade Trials Performed Correctly", xlab = " ") + 
+          ylab = "Proportion of Anti-Saccade Trials\nPerformed Correctly", xlab = " ") + 
           scale_x_discrete(labels=c("Control","mTBI","PCS")) +
           geom_errorbar(aes(x= TBI_Non, ymin= Mean-CorrSE*1.96, ymax = Mean + CorrSE*1.96), width=.2, position=position_dodge(.9)) +
           #geom_hline(yintercept=0, linetype="dashed", color="#5f6061")+
@@ -649,27 +648,24 @@ AT_Sac <- ggbarplot(means, x = "TBI_Non", y = "Mean",
    #labs( subtitle = get_test_label(K_test_Pres, detailed = TRUE))
 
 SacTrialPlots<- ggarrange(PT_Sac , AT_Sac,  labels = c( "A" ,"B"))
-ggsave("SacTrialPlots.png", width = 20, height = 13, units = "cm")
+ggsave("SacTrialPlots.png", width = 20, height = 10, units = "cm")
 
 ```
 
 
 ```{r Sac_Latency, echo=FALSE, message=FALSE, warning=FALSE }
 ## Pro Sac
-res.aov <- subset(SACdf, TargType_Unity %like% "ProSac") %>% anova_test(Saccade_Latency ~ TBI_Non)
-par(mfrow = (c(2, 2)))
-plot(res.aov)
 K_test_Pres <-  kruskal_test(Saccade_Latency ~ TBI_Non, data = subset(SACdf, TargType_Unity %like% "ProSac"))
 
-means <- subset(SACdf, TargType_Unity %like% "ProSac") %>% group_by(TBI_Non) %>%
-  dplyr::summarise(Mean = mean(Saccade_Latency, na.rm = T), SD = sd(Saccade_Latency, na.rm = T))
+diffs <- subset(SACdf, TargType_Unity %like% "ProSac") %>% group_by(TBI_Non) %>%
+  dplyr::summarise(Medians = median(Saccade_Latency, na.rm = T), Mean = mean(Saccade_Latency, na.rm = T), SD = sd(Saccade_Latency, na.rm = T))
 
 stat.test <- compare_means(
  Saccade_Latency ~ TBI_Non, data = subset(SACdf, TargType_Unity %like% "ProSac"),
- method = "wilcox.test"#, p.adjust.method = "holm"
+ method = "wilcox.test", p.adjust.method = "holm"
 )
 stat.test <- stat.test %>%
- mutate(y.position = c(2, 2.2,2.4))
+ mutate(y.position = c(2000, 2200, 2400))
 
 PL_Sac <- ggplot(subset(SACdf, TargType_Unity %like% "ProSac"), aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long")), y =   Saccade_Latency, color =  TBI_Non)) + 
   geom_boxplot(outlier.shape = NA)+ 
@@ -677,26 +673,20 @@ PL_Sac <- ggplot(subset(SACdf, TargType_Unity %like% "ProSac"), aes(x = factor(T
   scale_color_manual(values=c( "#D55E00", "#56B4E9", "#009E73")) +
   scale_x_discrete(labels=c("Control","mTBI","PCS")) +
   theme_minimal() + theme(legend.position="none")+
-  xlab(" ") + ylab("Pro-Saccade Latency (s)")+
+  xlab(" ") + ylab("Pro-Saccade Latency (ms)")+
   stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
 
-
-
 ## Anti Sac
-res.aov <- subset(SACdf, TargType_Unity %like% "AntiSac") %>% anova_test(Saccade_Latency ~ TBI_Non)
-par(mfrow = (c(2, 2)))
-plot(res.aov)
 K_test_Pres <-  kruskal_test(Saccade_Latency ~ TBI_Non, data = subset(SACdf, TargType_Unity %like% "AntiSac"))
 
-means <- subset(SACdf, TargType_Unity %like% "AntiSac") %>% group_by(TBI_Non) %>%
-  dplyr::summarise(Mean = mean(Saccade_Latency, na.rm = T), SD = sd(Saccade_Latency, na.rm = T))
-
+diffs <- subset(SACdf, TargType_Unity %like% "AntiSac") %>% group_by(TBI_Non) %>%
+  dplyr::summarise(Medians = median(Saccade_Latency, na.rm = T), Mean = mean(Saccade_Latency, na.rm = T), SD = sd(Saccade_Latency, na.rm = T))
 stat.test <- compare_means(
  Saccade_Latency ~ TBI_Non, data = subset(SACdf, TargType_Unity %like% "AntiSac"),
  method = "wilcox.test"#, p.adjust.method = "holm"
 )
 stat.test <- stat.test %>%
- mutate(y.position = c(2, 2.2,2.4))
+ mutate(y.position = c(2000, 2200, 2400))
 
 AL_Sac <- ggplot(subset(SACdf, TargType_Unity %like% "Anti"), aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long")), y =   Saccade_Latency, color =  TBI_Non)) + 
   geom_boxplot(outlier.shape = NA)+ 
@@ -704,24 +694,22 @@ AL_Sac <- ggplot(subset(SACdf, TargType_Unity %like% "Anti"), aes(x = factor(TBI
   scale_color_manual(values=c( "#D55E00", "#56B4E9", "#009E73")) +
   scale_x_discrete(labels=c("Control","mTBI","PCS")) +
   theme_minimal() + theme(legend.position="none")+
-  xlab(" ") + ylab("Anti-Saccade Latency (s)")+
+  xlab(" ") + ylab("Anti-Saccade Latency (ms)")+
   stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
 
 ```
 
 ```{r Sac_Vel, echo=FALSE, message=FALSE, warning=FALSE }
 ## Pro Sac
-res.aov <- subset(SACdf, TargType_Unity %like% "ProSac") %>% anova_test(Saccade_Vel_Deg_s ~ TBI_Non)
-par(mfrow = (c(2, 2)))
-plot(res.aov)
+
 K_test_Pres <-  kruskal_test(Saccade_Vel_Deg_s ~ TBI_Non, data = subset(SACdf, TargType_Unity %like% "ProSac"))
 
-means <- subset(SACdf, TargType_Unity %like% "ProSac") %>% group_by(TBI_Non) %>%
-  dplyr::summarise(Mean = mean(Saccade_Vel_Deg_s, na.rm = T), SD = sd(Saccade_Vel_Deg_s, na.rm = T))
+diffs <- subset(SACdf, TargType_Unity %like% "ProSac") %>% group_by(TBI_Non) %>%
+  dplyr::summarise(Medians = median(Saccade_Vel_Deg_s, na.rm = T), Mean = mean(Saccade_Vel_Deg_s, na.rm = T), SD = sd(Saccade_Vel_Deg_s, na.rm = T))
 
 stat.test <- compare_means(
  Saccade_Vel_Deg_s ~ TBI_Non, data = subset(SACdf, TargType_Unity %like% "ProSac"),
- method = "wilcox.test"#, p.adjust.method = "holm"
+ method = "wilcox.test", p.adjust.method = "holm"
 )
 stat.test <- stat.test %>%
  mutate(y.position = c(300, 320, 350))
@@ -737,13 +725,10 @@ PV_Sac <- ggplot(subset(SACdf, TargType_Unity %like% "ProSac"), aes(x = factor(T
 
 
 ## Anti Sac
-res.aov <- subset(SACdf, TargType_Unity %like% "AntiSac") %>% anova_test(Saccade_Vel_Deg_s ~ TBI_Non)
-par(mfrow = (c(2, 2)))
-plot(res.aov)
 K_test_Pres <-  kruskal_test(Saccade_Vel_Deg_s ~ TBI_Non, data = subset(SACdf, TargType_Unity %like% "AntiSac"))
 
-means <- subset(SACdf, TargType_Unity %like% "AntiSac") %>% group_by(TBI_Non) %>%
-  dplyr::summarise(Mean = mean(Saccade_Vel_Deg_s, na.rm = T), SD = sd(Saccade_Vel_Deg_s, na.rm = T))
+diffs <- subset(SACdf, TargType_Unity %like% "AntiSac") %>% group_by(TBI_Non) %>%
+  dplyr::summarise(Medians = median(Saccade_Vel_Deg_s, na.rm = T), Mean = mean(Saccade_Vel_Deg_s, na.rm = T), SD = sd(Saccade_Vel_Deg_s, na.rm = T))
 
 stat.test <- compare_means(
  Saccade_Vel_Deg_s ~ TBI_Non, data = subset(SACdf, TargType_Unity %like% "AntiSac"),
@@ -779,12 +764,18 @@ load("Str_LongTerm.Rda")
 
 Str_Healthy$ID <- paste(Str_Healthy$ID, 1, sep = "_")
 Str_ShortTerm$ID <- paste(Str_ShortTerm$ID, 2, sep = "_")
-Str_ShortTerm <- Str_ShortTerm[-c(4,9)]
+Str_ShortTerm <- Str_ShortTerm[-c(9)]
 Str_LongTerm$ID <- paste(Str_LongTerm$ID, 3, sep = "_")
-Str_LongTerm <- Str_LongTerm[-c(4)]
+
 STRdf <- rbind(Str_Healthy, Str_ShortTerm, Str_LongTerm)
 
+STRdf$Saccade_Latency <- replace(STRdf$Saccade_Latency, STRdf$Saccade_Latency < 60, NA)
+
 STRdf$Test_Corr <-  as.numeric(STRdf$Test_Corr)
+save(STRdf,file="STRdf.Rda")
+
+
+
 leveneTest(Test_Corr ~ Pre_Post,       STRdf)
 leveneTest(Saccade_Latency ~ Pre_Post, STRdf) 
 leveneTest(trialTime ~ Pre_Post,       STRdf)
@@ -795,7 +786,7 @@ shapiro.test(STRdf$Saccade_Latency)
 shapiro.test(STRdf$trialTime)
 
 
-colNames <- c("ID", "Stroop Part" , "Saccade Latency (s)", "Trial Time (s)", "Number Trials Correct", "Pre_Post", "TBI_Non")
+colNames <- c("ID", "Stroop Part" , "Saccade Latency (ms)", "Trial Time (s)", "Number Trials Correct", "Pre_Post", "TBI_Non")
 testTitle <- "Summary Data for Stroop"
 source("GetSummaryTables.R")
 GetSummaryTablesCIs(STRdf, colNames, testTitle) 
@@ -804,61 +795,56 @@ GetSummaryTablesCIs(STRdf, colNames, testTitle)
 
 ```{r Str_Trials Corr, echo=FALSE, message=FALSE, warning=FALSE }
 ## Part one
-res.aov <- subset(STRdf, strpPart_Unity == 1) %>% anova_test(Test_Corr ~ TBI_Non)
-par(mfrow = (c(2, 2)))
-plot(res.aov)
 K_test_Pres <-  kruskal_test(Test_Corr ~ TBI_Non, data = subset(STRdf, strpPart_Unity == 1))
 
-means <- subset(STRdf, strpPart_Unity == 1) %>% group_by(TBI_Non) %>%
-  dplyr::summarise(Mean = mean(Test_Corr, na.rm = T), SD = sd(Test_Corr, na.rm = T),  CorrSE = SD/115)
+diffs <- subset(STRdf, strpPart_Unity == 1) %>% group_by(TBI_Non) %>%
+  dplyr::summarise(Medians = median(Test_Corr, na.rm = T), Mean = mean(Test_Corr, na.rm = T), SD = sd(Test_Corr, na.rm = T),  CorrSE = SD/115)
+
 
 stat.test <- compare_means(
  Test_Corr ~ TBI_Non, data = subset(STRdf, strpPart_Unity == 1),
- method = "wilcox.test"#, p.adjust.method = "holm"
+ method = "wilcox.test", p.adjust.method = "holm"
 )
 stat.test <- stat.test %>%
  mutate(y.position = c( 1, 1.05, 1.1))
 
-P1_Sac <- ggbarplot(means, x = "TBI_Non", y = "Mean", 
+P1_Sac <- ggbarplot(diffs, x = "TBI_Non", y = "Mean", 
           color = "TBI_Non",fill = "TBI_Non", palette = myCols3,  #add = "jitter",
           order = c("Non", "Short", "Long"),
-          ylab = "Proportion of Part One Trials Performed Correctly", xlab = " ") + 
+          ylab = "Proportion of Part One Trials\nPerformed Correctly", xlab = " ") + 
           scale_x_discrete(labels=c("Control","mTBI","PCS")) +
   geom_errorbar(aes(x= TBI_Non, ymin= Mean-CorrSE*1.96, ymax = Mean + CorrSE*1.96), width=.2, position=position_dodge(.9)) +
           theme(legend.position = "none")+
-    stat_pvalue_manual(stat.test, label = "p.adj") 
+    stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
    #labs( subtitle = get_test_label(K_test_Pres, detailed = TRUE))
 
 
 ## Part 2
-res.aov <- subset(STRdf, strpPart_Unity == 2) %>% anova_test(Test_Corr ~ TBI_Non)
-par(mfrow = (c(2, 2)))
-plot(res.aov)
 K_test_Pres <-  kruskal_test(Test_Corr ~ TBI_Non, data = subset(STRdf, strpPart_Unity == 2))
 
-means <- subset(STRdf, strpPart_Unity == 2) %>% group_by(TBI_Non) %>%
-  dplyr::summarise(Mean = mean(Test_Corr, na.rm = T), SD = sd(Test_Corr, na.rm = T),  CorrSE = SD/115)
+diffs <- subset(STRdf, strpPart_Unity == 2) %>% group_by(TBI_Non) %>%
+  dplyr::summarise(Medians = median(Test_Corr, na.rm = T), Mean = mean(Test_Corr, na.rm = T), SD = sd(Test_Corr, na.rm = T),  CorrSE = SD/115)
 
 stat.test <- compare_means(
  Test_Corr ~ TBI_Non, data = subset(STRdf, strpPart_Unity == 2),
- method = "wilcox.test"#, p.adjust.method = "holm"
+ method = "wilcox.test", p.adjust.method = "holm"
 )
 stat.test <- stat.test %>%
  mutate(y.position = c(1, 1.05, 1.1))
 
-P2_Sac <- ggbarplot(means, x = "TBI_Non", y = "Mean", 
+P2_Sac <- ggbarplot(diffs, x = "TBI_Non", y = "Mean", 
           color = "TBI_Non", fill = "TBI_Non", palette = myCols3, 
           order = c("Non", "Short", "Long"),
-          ylab = "Proportion of Part Two Trials Performed Correctly", xlab = " ") + 
+          ylab = "Proportion of Part Two Trials\nPerformed Correctly", xlab = " ") + 
           scale_x_discrete(labels=c("Control","mTBI","PCS")) +
           geom_errorbar(aes(x= TBI_Non, ymin= Mean-CorrSE*1.96, ymax = Mean + CorrSE*1.96), width=.2, position=position_dodge(.9)) +
           #geom_hline(yintercept=0, linetype="dashed", color="#5f6061")+
           theme(legend.position = "none")+
-    stat_pvalue_manual(stat.test, label = "p.adj") 
+    stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
    #labs( subtitle = get_test_label(K_test_Pres, detailed = TRUE))
 
 StrTrialPlots<- ggarrange(P1_Sac , P2_Sac,  labels = c( "A" ,"B"))
-ggsave("StrTrialPlots.png", width = 20, height = 13, units = "cm")
+ggsave("StrTrialPlots.png", width = 20, height = 10, units = "cm")
 
 ```
 
@@ -873,17 +859,13 @@ P1_tots <- setnames(DT[, sapply(.SD, function(x)  list(tot=sum(x, na.rm = T))), 
 P1_tots <-  P1_tots %>% separate(ID, c("ID", "group", "TBI_Non"))
 P1_tots <- P1_tots %>% unite(ID, ID, group, sep = "_")
 
-res.aov <- P1_tots %>% anova_test(trialTime.tot ~ TBI_Non)
-par(mfrow = (c(2, 2)))
-plot(res.aov)
 K_test_Pres <-  kruskal_test(trialTime.tot ~ TBI_Non, data = P1_tots)
-
-means <- P1_tots %>% group_by(TBI_Non) %>%
-  dplyr::summarise(Mean = mean(trialTime.tot, na.rm = T), SD = sd(trialTime.tot, na.rm = T))
+diffs <- P1_tots %>% group_by(TBI_Non) %>%
+  dplyr::summarise(Medians = median(trialTime.tot, na.rm = T), Mean = mean(trialTime.tot, na.rm = T), SD = sd(trialTime.tot, na.rm = T),  CorrSE = SD/115)
 
 stat.test <- compare_means(
  trialTime.tot ~ TBI_Non, data = P1_tots,
- method = "wilcox.test"#, p.adjust.method = "holm"
+ method = "wilcox.test", p.adjust.method = "holm"
 )
 stat.test <- stat.test %>%
  mutate(y.position = c(35,40,45))
@@ -897,8 +879,6 @@ TT1_Str <- ggplot(P1_tots, aes(x = factor(TBI_Non, levels = c("Non", "Short", "L
   xlab(" ") + ylab("Part One Total Test Time (s)")+
   stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
 
-
-
 ## P2
 P2 <- subset(STRdf, strpPart_Unity == 2)
 P2 <- P2[c(1,4,7)]
@@ -909,17 +889,13 @@ P2_tots <- setnames(DT[, sapply(.SD, function(x)  list(tot=sum(x, na.rm = T))), 
 P2_tots <-  P2_tots %>% separate(ID, c("ID", "group", "TBI_Non"))
 P2_tots <- P2_tots %>% unite(ID, ID, group, sep = "_")
 
-res.aov <- P2_tots %>% anova_test(trialTime.tot ~ TBI_Non)
-par(mfrow = (c(2, 2)))
-plot(res.aov)
 K_test_Pres <-  kruskal_test(trialTime.tot ~ TBI_Non, data = P2_tots)
-
-means <- P2_tots %>% group_by(TBI_Non) %>%
-  dplyr::summarise(Mean = mean(trialTime.tot, na.rm = T), SD = sd(trialTime.tot, na.rm = T))
+diffs <- P2_tots %>% group_by(TBI_Non) %>%
+  dplyr::summarise(Medians = median(trialTime.tot, na.rm = T), Mean = mean(trialTime.tot, na.rm = T), SD = sd(trialTime.tot, na.rm = T),  CorrSE = SD/115)
 
 stat.test <- compare_means(
  trialTime.tot ~ TBI_Non, data = P2_tots,
- method = "wilcox.test"#, p.adjust.method = "holm"
+ method = "wilcox.test", p.adjust.method = "holm"
 )
 stat.test <- stat.test %>%
  mutate(y.position = c(35,40,45))
@@ -937,20 +913,18 @@ TT2_Str <- ggplot(P2_tots, aes(x = factor(TBI_Non, levels = c("Non", "Short", "L
 
 ```{r Sac_Latency, echo=FALSE, message=FALSE, warning=FALSE }
 ## Pro Sac
-res.aov <- subset(STRdf, strpPart_Unity == 1) %>% anova_test(Saccade_Latency ~ TBI_Non)
-par(mfrow = (c(2, 2)))
-plot(res.aov)
+
 K_test_Pres <-  kruskal_test(Saccade_Latency ~ TBI_Non, data = subset(STRdf, strpPart_Unity == 1))
 
-means <- subset(STRdf, strpPart_Unity == 1) %>% group_by(TBI_Non) %>%
-  dplyr::summarise(Mean = mean(Saccade_Latency, na.rm = T), SD = sd(Saccade_Latency, na.rm = T))
+diffs <- subset(STRdf, strpPart_Unity == 1) %>% group_by(TBI_Non) %>%
+  dplyr::summarise(Medians = median(Saccade_Latency, na.rm = T), Mean = mean(Saccade_Latency, na.rm = T), SD = sd(Saccade_Latency, na.rm = T),  CorrSE = SD/115)
 
 stat.test <- compare_means(
  Saccade_Latency ~ TBI_Non, data = subset(STRdf, strpPart_Unity == 1),
- method = "wilcox.test"#, p.adjust.method = "holm"
+ method = "wilcox.test", p.adjust.method = "holm"
 )
 stat.test <- stat.test %>%
- mutate(y.position = c(4,5,6))
+ mutate(y.position = c(3000,4000, 5000))
 
 P1_Str <- ggplot(subset(STRdf, strpPart_Unity == 1), aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long")), y =   Saccade_Latency, color =  TBI_Non)) + 
   geom_boxplot(outlier.shape = NA)+ 
@@ -958,26 +932,24 @@ P1_Str <- ggplot(subset(STRdf, strpPart_Unity == 1), aes(x = factor(TBI_Non, lev
   scale_color_manual(values=c( "#D55E00", "#56B4E9", "#009E73")) +
   scale_x_discrete(labels=c("Control","mTBI","PCS")) +
   theme_minimal() + theme(legend.position="none")+
-  xlab(" ") + ylab("Part One Latency (s)")+
+  xlab(" ") + ylab("Part One Latency (ms)")+
   stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
 
 
 
 ## Anti Sac
-res.aov <- subset(STRdf, strpPart_Unity == 2) %>% anova_test(Saccade_Latency ~ TBI_Non)
-par(mfrow = (c(2, 2)))
-plot(res.aov)
+
 K_test_Pres <-  kruskal_test(Saccade_Latency ~ TBI_Non, data = subset(STRdf, strpPart_Unity == 2))
 
-means <- subset(STRdf, strpPart_Unity == 2) %>% group_by(TBI_Non) %>%
-  dplyr::summarise(Mean = mean(Saccade_Latency, na.rm = T), SD = sd(Saccade_Latency, na.rm = T))
+diffs <- subset(STRdf, strpPart_Unity == 2) %>% group_by(TBI_Non) %>%
+  dplyr::summarise(Medians = median(Saccade_Latency, na.rm = T), Mean = mean(Saccade_Latency, na.rm = T), SD = sd(Saccade_Latency, na.rm = T),  CorrSE = SD/115)
 
 stat.test <- compare_means(
  Saccade_Latency ~ TBI_Non, data = subset(STRdf, strpPart_Unity == 2),
- method = "wilcox.test"#, p.adjust.method = "holm"
+ method = "wilcox.test", p.adjust.method = "holm"
 )
 stat.test <- stat.test %>%
- mutate(y.position = c(5,6,7))
+ mutate(y.position = c(3000,4000, 5000))
 
 P2_Str <- ggplot(subset(STRdf, strpPart_Unity == 2), aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long")), y =   Saccade_Latency, color =  TBI_Non)) + 
   geom_boxplot(outlier.shape = NA)+ 
@@ -985,7 +957,7 @@ P2_Str <- ggplot(subset(STRdf, strpPart_Unity == 2), aes(x = factor(TBI_Non, lev
   scale_color_manual(values=c( "#D55E00", "#56B4E9", "#009E73")) +
   scale_x_discrete(labels=c("Control","mTBI","PCS")) +
   theme_minimal() + theme(legend.position="none")+
-  xlab(" ") + ylab("Part Two Latency (s)")+
+  xlab(" ") + ylab("Part Two Latency (ms)")+
   stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
 
 StrTimeLatPlots<- ggarrange(P1_Str , P2_Str, TT1_Str, TT2_Str, nrow=2, ncol=2,  labels = c( "A" ,"B", "C", "D"))
@@ -1000,14 +972,21 @@ load("VOR_Healthy.Rda")
 load("Vor_ShortTerm.Rda")
 load("VOR_LongTerm.Rda")
 
-view(VOR_Healthy)
-view(Vor_ShortTerm)
-view(VOR_LongTerm)
+#view(VOR_Healthy)
+#view(Vor_ShortTerm)
+#view(VOR_LongTerm)
 
 VOR_Healthy$ID <- paste(VOR_Healthy$ID, 1, sep = "_")
+VOR_Healthy <- VOR_Healthy[-c(7)]
 Vor_ShortTerm$ID <- paste(Vor_ShortTerm$ID, 2, sep = "_")
 VOR_LongTerm$ID <- paste(VOR_LongTerm$ID, 3, sep = "_")
+
+VOR_Healthy$Time_Max_Gain <- VOR_Healthy$Time_Max_Gain * 1000
+Vor_ShortTerm$Time_Max_Gain <- Vor_ShortTerm$Time_Max_Gain * 1000
+
+
 VORdf <- rbind(VOR_Healthy, Vor_ShortTerm, VOR_LongTerm)
+save(VORdf,file="VORdf.Rda")
 
 # percental horzont saccs
 r_Full <- nrow(VORdf)
@@ -1018,7 +997,6 @@ N_Hor_Sac
 n_V_Sac <- nrow(subset(VORdf, Vert_Saccade_Number >= 1))
 N_Ver_Sac <- (n_V_Sac/r_Full)*100
 N_Ver_Sac
-
 
 
 leveneTest(Gain ~ Pre_Post,       VORdf)
@@ -1046,15 +1024,14 @@ GetSummaryTablesCIs(VORdf, colNames, testTitle)
 ```
 
 ```{r VOR_BCEA, echo=FALSE, message=FALSE, warning=FALSE }
-res.aov <- VORdf %>% anova_test(BCEA_68_Log10 ~ TBI_Non)
-par(mfrow = (c(2, 2)))
-plot(res.aov)
-means <- VORdf %>% group_by(TBI_Non) %>%
-  dplyr::summarise(Mean = mean(BCEA_68_Log10, na.rm = T), SD = sd(BCEA_68_Log10, na.rm = T))
+# difference bw Pre groups
+K_test_Pres <-  kruskal.test(BCEA_68_Log10 ~ TBI_Non, data = VORdf)
+diffs <- VORdf %>% group_by(TBI_Non) %>%
+  dplyr::summarise(Medians = median(BCEA_68_Log10, na.rm = T), Mean = mean(BCEA_68_Log10, na.rm = T), SD = sd(BCEA_68_Log10, na.rm = T))
 
 stat.test <- compare_means(
  BCEA_68_Log10 ~ TBI_Non, data = VORdf,
- method = "t.test"#, p.adjust.method = "holm"
+ method = "t.test", p.adjust.method = "holm"
 )
 stat.test <- stat.test %>%
  mutate(y.position = c(6,6.5,7.1))
@@ -1073,16 +1050,13 @@ B_VOR <- ggplot(VORdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long"
 
 
 ```{r VOR_HVA, echo=FALSE, message=FALSE, warning=FALSE }
-res.aov <- VORdf %>% anova_test(HVA_Mean_deg ~ TBI_Non)
-par(mfrow = (c(2, 2)))
-plot(res.aov)
-K_test_Pres <-  kruskal_test(HVA_Mean_deg ~ TBI_Non, data = VORdf)
-means <- VORdf %>% group_by(TBI_Non) %>%
-  dplyr::summarise(Mean = mean(HVA_Mean_deg, na.rm = T), SD = sd(HVA_Mean_deg, na.rm = T))
+K_test_Pres <-  kruskal.test(HVA_Mean_deg ~ TBI_Non, data = VORdf)
+diffs <- VORdf %>% group_by(TBI_Non) %>%
+  dplyr::summarise(Medians = median(HVA_Mean_deg, na.rm = T), Mean = mean(HVA_Mean_deg, na.rm = T), SD = sd(HVA_Mean_deg, na.rm = T))
 
 stat.test <- compare_means(
  HVA_Mean_deg ~ TBI_Non, data = VORdf,
- method = "wilcox.test"#, p.adjust.method = "holm"
+ method = "wilcox.test", p.adjust.method = "holm"
 )
 stat.test <- stat.test %>%
  mutate(y.position = c(6,7,8.5))
@@ -1101,12 +1075,9 @@ H_VOR <- ggplot(VORdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long"
 
 
 ```{r VOR_VVA, echo=FALSE, message=FALSE, warning=FALSE }
-res.aov <- VORdf %>% anova_test(VVA_Mean_deg ~ TBI_Non)
-par(mfrow = (c(2, 2)))
-plot(res.aov)
-K_test_Pres <-  kruskal_test(VVA_Mean_deg ~ TBI_Non, data = VORdf)
-means <- VORdf %>% group_by(TBI_Non) %>%
-  dplyr::summarise(Mean = mean(VVA_Mean_deg, na.rm = T), SD = sd(VVA_Mean_deg, na.rm = T))
+K_test_Pres <-  kruskal.test(VVA_Mean_deg ~ TBI_Non, data = VORdf)
+diffs <- VORdf %>% group_by(TBI_Non) %>%
+  dplyr::summarise(Medians = median(VVA_Mean_deg, na.rm = T), Mean = mean(VVA_Mean_deg, na.rm = T), SD = sd(VVA_Mean_deg, na.rm = T))
 
 stat.test <- compare_means(
  VVA_Mean_deg ~ TBI_Non, data = VORdf,
@@ -1125,19 +1096,19 @@ V_VOR <- ggplot(VORdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long"
   geom_hline(yintercept=0, linetype="dashed", color="#5f6061")+
   stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
 
+VORPlotsVA <- ggarrange(B_VOR, NULL, H_VOR, V_VOR,  labels = c( "A" , "", "B", "C"))
+ggsave("VORPlotsVA.png", width = 20, height = 20, units = "cm")
+
 ```
 
 ```{r VOR_Gain, echo=FALSE, message=FALSE, warning=FALSE }
-res.aov <- VORdf %>% anova_test(Gain ~ TBI_Non)
-par(mfrow = (c(2, 2)))
-plot(res.aov)
-K_test_Pres <-  kruskal_test(Gain ~ TBI_Non, data = VORdf)
-means <- VORdf %>% group_by(TBI_Non) %>%
-  dplyr::summarise(Mean = mean(Gain, na.rm = T), SD = sd(Gain, na.rm = T))
+K_test_Pres <-  kruskal.test(Gain ~ TBI_Non, data = VORdf)
+diffs <- VORdf %>% group_by(TBI_Non) %>%
+  dplyr::summarise(Medians = median(Gain, na.rm = T), Mean = mean(Gain, na.rm = T), SD = sd(Gain, na.rm = T))
 
 stat.test <- compare_means(
  Gain ~ TBI_Non, data = VORdf,
- method = "wilcox.test"#, p.adjust.method = "holm"
+ method = "wilcox.test", p.adjust.method = "holm"
 )
 stat.test <- stat.test %>%
  mutate(y.position = c(1.5,1.6,1.75))
@@ -1155,19 +1126,16 @@ G_VOR <- ggplot(VORdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long"
 ```
 
 ```{r VOR_TimeGain, echo=FALSE, message=FALSE, warning=FALSE }
-res.aov <- VORdf %>% anova_test(Time_Max_Gain ~ TBI_Non)
-par(mfrow = (c(2, 2)))
-plot(res.aov)
-K_test_Pres <-  kruskal_test(Time_Max_Gain ~ TBI_Non, data = VORdf)
-means <- VORdf %>% group_by(TBI_Non) %>%
-  dplyr::summarise(Mean = mean(Time_Max_Gain, na.rm = T), SD = sd(Time_Max_Gain, na.rm = T))
+K_test_Pres <-  kruskal.test(Time_Max_Gain ~ TBI_Non, data = VORdf)
+diffs <- VORdf %>% group_by(TBI_Non) %>%
+  dplyr::summarise(Medians = median(Time_Max_Gain, na.rm = T), Mean = mean(Time_Max_Gain, na.rm = T), SD = sd(Time_Max_Gain, na.rm = T))
 
 stat.test <- compare_means(
  Time_Max_Gain ~ TBI_Non, data = VORdf,
- method = "wilcox.test"#, p.adjust.method = "holm"
+ method = "wilcox.test", p.adjust.method = "holm"
 )
 stat.test <- stat.test %>%
- mutate(y.position = c(0.4,0.5, .6))
+ mutate(y.position = c(500, 600, 700))
 
 TG_VOR <- ggplot(VORdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long")), y = Time_Max_Gain, color = TBI_Non)) + 
   geom_boxplot(outlier.shape = NA)+ 
@@ -1175,23 +1143,20 @@ TG_VOR <- ggplot(VORdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long
   scale_color_manual(values=c( "#D55E00", "#56B4E9", "#009E73")) +
   scale_x_discrete(labels=c("Control","mTBI","PCS")) +
   theme_minimal() + theme(legend.position="none")+
-  xlab(" ") + ylab("Time to Maximum Gain (s)")+
+  xlab(" ") + ylab("Time to Maximum Gain (ms)")+
   #geom_hline(yintercept=1, linetype="dashed", color="#5f6061")+
   stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
 
 ```
 
 ```{r VOR_HS, echo=FALSE, message=FALSE, warning=FALSE }
-res.aov <- VORdf %>% anova_test(Horiz_Saccade_Number ~ TBI_Non)
-par(mfrow = (c(2, 2)))
-plot(res.aov)
-K_test_Pres <-  kruskal_test(Horiz_Saccade_Number ~ TBI_Non, data = VORdf)
-means <- VORdf %>% group_by(TBI_Non) %>%
-  dplyr::summarise(Mean = mean(Horiz_Saccade_Number, na.rm = T), SD = sd(Horiz_Saccade_Number, na.rm = T))
+K_test_Pres <-  kruskal.test(Horiz_Saccade_Number ~ TBI_Non, data = VORdf)
+diffs <- VORdf %>% group_by(TBI_Non) %>%
+  dplyr::summarise(Medians = median(Horiz_Saccade_Number, na.rm = T), Mean = mean(Horiz_Saccade_Number, na.rm = T), SD = sd(Horiz_Saccade_Number, na.rm = T))
 
 stat.test <- compare_means(
  Horiz_Saccade_Number ~ TBI_Non, data = VORdf,
- method = "wilcox.test"#, p.adjust.method = "holm"
+ method = "wilcox.test", p.adjust.method = "holm"
 )
 stat.test <- stat.test %>%
  mutate(y.position = c(4,4.5,5))
@@ -1206,7 +1171,7 @@ HS_VOR <- ggplot(VORdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long
   #geom_hline(yintercept=1, linetype="dashed", color="#5f6061")+
   stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
 
-VORPlots <- ggarrange(B_VOR,H_VOR, V_VOR, G_VOR, TG_VOR, HS_VOR,  labels = c( "A" , "B", "C", "D", "E", "F"))
-ggsave("VORPlots.png", width = 20, height = 20, units = "cm")
+VORPlotsG <- ggarrange(G_VOR, TG_VOR,  HS_VOR, NULL, labels = c( "A" , "B",  "C", ""))
+ggsave("VORPlotsG.png", width = 20, height = 20, units = "cm")
 
 ```
