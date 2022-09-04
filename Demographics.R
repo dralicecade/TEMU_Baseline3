@@ -165,3 +165,12 @@ PCS_Dem %>%
   kbl(caption = "Demographic Data for PCS") %>%
   kable_classic(full_width = F, html_font = "Arial")
 
+
+All_lowHigh <- sort(AllPartic$ageYrs)
+MTBI_lowHigh <- sort(mTBIPartic$ageYrs)
+PPCS_lowHigh <- sort(PCS_DemPartic$ageYrs)
+
+Tot_Ages <- qpcR:::cbind.na(All_lowHigh, MTBI_lowHigh, PPCS_lowHigh)
+Tot_Ages$diff <- Chiro_lowHigh - Control_lowHigh
+mean(Tot_Ages$diff)
+sd(Tot_Ages$diff)

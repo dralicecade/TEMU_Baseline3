@@ -74,7 +74,7 @@ shapiro.test(EGOdf$Error_Y_mm)
 shapiro.test(EGOdf$X_Shoot)
 shapiro.test(EGOdf$Y_Shoot)
 
-colNames <- c("ID", "Horizontal Error (mm)", "Vertical Error (mm)","Horizontal Overshoots", "Vertical Overshoots", "Pre_Post", "TBI_Non")
+colNames <- c("ID","Trial Number",  "Horizontal Error (mm)", "Vertical Error (mm)","Horizontal Overshoots", "Vertical Overshoots", "Pre_Post", "TBI_Non")
 testTitle <- "Summary Data for Egocentric Localisation"
 source("GetSummaryTables.R")
 GetSummaryTablesCIs(EGOdf, colNames, testTitle) 
@@ -257,7 +257,7 @@ shapiro.test(FIXdf$VVA_Mean_deg)
 shapiro.test(FIXdf$BCEA_68_Log10)
 
 
-colNames <- c("ID", "Horizontal Visual Angle Error (deg)", "Vertical Visual Angle Error (deg)","BCEA Log10 (MinArc2)",  "Pre_Post", "TBI_Non")
+colNames <- c("ID","Trial Number", "Horizontal Visual Angle Error (deg)", "Vertical Visual Angle Error (deg)",  "Pre_Post", "TBI_Non","BCEA Log10 (MinArc2)")
 testTitle <- "Summary Data for Fixation"
 source("GetSummaryTables.R")
 GetSummaryTablesCIs(FIXdf, colNames, testTitle) 
@@ -298,6 +298,7 @@ stat.test <- compare_means(
 )
 stat.test <- stat.test %>%
  mutate(y.position = c(1.5, 1.8, 2.2))
+
 
 V_Fix <- ggplot(FIXdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long")), y =   VVA_Mean_deg, color =  TBI_Non)) + 
   geom_boxplot(outlier.shape = NA)+ 
@@ -370,7 +371,7 @@ shapiro.test(PURdf$Gain_Total)
 shapiro.test(PURdf$Gain_Horiz)
 shapiro.test(PURdf$Gain_Vert)
 
-colNames <- c("ID", "Number of Saccades", "Horizontal Visual Angle Error (deg)", "Vertical Visual Angle Error (deg)","Total Visual Angle Error (deg)", "Total Gain", "Horizontal Gain", "Vertical Gain", "Pre_Post", "TBI_Non")
+colNames <- c("ID","Trial Number", "Number of Saccades", "Horizontal Visual Angle Error (deg)", "Vertical Visual Angle Error (deg)","Total Visual Angle Error (deg)", "Total Gain", "Horizontal Gain", "Vertical Gain", "Pre_Post", "TBI_Non")
 testTitle <- "Summary Data for Pursuits"
 source("GetSummaryTables.R")
 GetSummaryTablesCIs(PURdf, colNames, testTitle) 
@@ -396,6 +397,8 @@ r_Full_PCS <- nrow(subset(PURdf, TBI_Non %like% "Long"))
 n_H_Sac_PCS <- nrow(subset(subset(PURdf, TBI_Non %like% "Long"), Num_Sacs >= 1))
 N_Hor_Sac_PCS <- (n_H_Sac_PCS/r_Full_PCS)*100
 N_Hor_Sac_PCS
+
+NumSacsGroup <- chisq.test(x=c(N_Hor_Sac_Non, N_Hor_Sac_TBI, N_Hor_Sac_PCS), p = c(1/3, 1/3, 1/3))
 ```
 
 ```{r T_Pur, echo=FALSE, message=FALSE, warning=FALSE }
@@ -591,7 +594,7 @@ shapiro.test(SACdf$Saccade_Latency)
 shapiro.test(SACdf$Saccade_Vel_Deg_s)
 
 
-colNames <- c("ID", "Target Type" ,"Number Trials Correct", "Saccade Latency (s)", "Saccade Velocity (deg/s)", "Pre_Post", "TBI_Non")
+colNames <- c("ID","Trial Number", "Target Type" ,"Number Trials Correct", "Saccade Latency (s)", "Saccade Velocity (deg/s)", "Pre_Post", "TBI_Non")
 testTitle <- "Summary Data for Saccades"
 source("GetSummaryTables.R")
 GetSummaryTablesCIs(SACdf, colNames, testTitle) 
@@ -609,7 +612,7 @@ stat.test <- compare_means(
  method = "wilcox.test", p.adjust.method = "holm"
 )
 stat.test <- stat.test %>%
- mutate(y.position = c(0.90, .95, 1))
+ mutate(y.position = c(0.90, 1, 1.1))
 
 PT_Sac <- ggbarplot(diffs, x = "TBI_Non", y = "Mean", 
           color = "TBI_Non",fill = "TBI_Non", palette = myCols3,  #add = "jitter",
@@ -634,7 +637,7 @@ stat.test <- compare_means(
  method = "wilcox.test", p.adjust.method = "holm"
 )
 stat.test <- stat.test %>%
- mutate(y.position = c(0.90, .95, 1))
+ mutate(y.position = c(0.90, 1, 1.1))
 
 AT_Sac <- ggbarplot(diffs, x = "TBI_Non", y = "Mean", 
           color = "TBI_Non", fill = "TBI_Non", palette = myCols3, 
@@ -786,7 +789,7 @@ shapiro.test(STRdf$Saccade_Latency)
 shapiro.test(STRdf$trialTime)
 
 
-colNames <- c("ID", "Stroop Part" , "Saccade Latency (ms)", "Trial Time (s)", "Number Trials Correct", "Pre_Post", "TBI_Non")
+colNames <- c("ID","Trial Number", "Stroop Part" , "Saccade Latency (ms)", "Trial Time (s)", "Number Trials Correct", "Pre_Post", "TBI_Non")
 testTitle <- "Summary Data for Stroop"
 source("GetSummaryTables.R")
 GetSummaryTablesCIs(STRdf, colNames, testTitle) 
@@ -806,7 +809,7 @@ stat.test <- compare_means(
  method = "wilcox.test", p.adjust.method = "holm"
 )
 stat.test <- stat.test %>%
- mutate(y.position = c( 1, 1.05, 1.1))
+ mutate(y.position = c( 1, 1.1, 1.2))
 
 P1_Sac <- ggbarplot(diffs, x = "TBI_Non", y = "Mean", 
           color = "TBI_Non",fill = "TBI_Non", palette = myCols3,  #add = "jitter",
@@ -830,7 +833,7 @@ stat.test <- compare_means(
  method = "wilcox.test", p.adjust.method = "holm"
 )
 stat.test <- stat.test %>%
- mutate(y.position = c(1, 1.05, 1.1))
+ mutate(y.position = c(1, 1.1, 1.2))
 
 P2_Sac <- ggbarplot(diffs, x = "TBI_Non", y = "Mean", 
           color = "TBI_Non", fill = "TBI_Non", palette = myCols3, 
@@ -851,7 +854,7 @@ ggsave("StrTrialPlots.png", width = 20, height = 10, units = "cm")
 ```{r Str_Trial Time, echo=FALSE, message=FALSE, warning=FALSE }
 ## P1
 P1 <- subset(STRdf, strpPart_Unity == 1)
-P1 <- P1[c(1,4,7)]
+P1 <- P1[c(1,5,8)]
 P1_totalTime <- P1 %>% unite(ID, ID, TBI_Non, sep = "_")
 
 DT <- data.table(P1_totalTime)
@@ -881,7 +884,7 @@ TT1_Str <- ggplot(P1_tots, aes(x = factor(TBI_Non, levels = c("Non", "Short", "L
 
 ## P2
 P2 <- subset(STRdf, strpPart_Unity == 2)
-P2 <- P2[c(1,4,7)]
+P2 <- P2[c(1,5,8)]
 P2_totalTime <- P2 %>% unite(ID, ID, TBI_Non, sep = "_")
 
 DT <- data.table(P2_totalTime)
@@ -1016,8 +1019,8 @@ shapiro.test(VORdf$Horiz_Saccade_Number)
 shapiro.test(VORdf$Vert_Saccade_Number)
 shapiro.test(VORdf$BCEA_68_Log10)
 
-
-colNames <- c("ID",  "Gain", "Time to Maximum Gain (s)","Horizontal Visual Angle Error (deg)", "Vertical Visual Angle Error (deg)",  "Number Horizontal Saccades", "Number Vertical Saccades","BCEA Log10 (MinArc2)" ,"Pre_Post", "TBI_Non")
+colnames(VORdf)
+colNames <- c("ID", "Trial Number", "Gain", "Time to Maximum Gain (ms)","Horizontal Visual Angle Error (deg)", "Vertical Visual Angle Error (deg)",  "Number Horizontal Saccades", "Number Vertical Saccades","BCEA Log10 (MinArc2)" ,"Pre_Post", "TBI_Non")
 testTitle <- "Summary Data for VOR"
 source("GetSummaryTables.R")
 GetSummaryTablesCIs(VORdf, colNames, testTitle) 
