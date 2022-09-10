@@ -47,6 +47,12 @@ VOR
 myCols2 <- c("#D55E00", "#56B4E9")
 myCols3 <- c("#56B4E9", "#009E73","#D55E00" )
 myCols4 <- c("#D55E00","#009E73", "#56B4E9","#CC79A7")
+
+#blue, green, orange , light blue  light green , light orange
+myCols3LightDark <- c("#56B4E9", "#009E73","#D55E00", "#abd5ed" , "#b4dbd1",   "#e3b591")
+
+myCols2LightDark <- c("#D55E00", "#56B4E9", "#e3b591", "#abd5ed")
+
 ```
 
 ## Egocentric Localisation
@@ -124,7 +130,7 @@ H_Ego <- ggplot(EGOdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long"
   geom_jitter(shape=16, position=position_jitter(0.2), alpha=0.4)+
   scale_color_manual(values=c( "#D55E00", "#56B4E9", "#009E73")) +
   scale_x_discrete(labels=c("Control","mTBI","PCS")) +
-  theme_minimal() + theme(legend.position="none")+
+  theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("Horizontal Error (mm)")+
   geom_hline(yintercept=0, linetype="dashed", color="#5f6061")+
   stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
@@ -152,7 +158,7 @@ V_Ego <- ggplot(EGOdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long"
   geom_jitter(shape=16, position=position_jitter(0.2), alpha=0.4)+
   scale_color_manual(values=c( "#D55E00", "#56B4E9", "#009E73")) +
   scale_x_discrete(labels=c("Control","mTBI","PCS")) +
-  theme_minimal() + theme(legend.position="none")+
+  theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("Vertical Error (mm)")+
   geom_hline(yintercept=0, linetype="dashed", color="#5f6061")+
   stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
@@ -179,8 +185,8 @@ Unders <- data.frame(under=PropXUnder$PropPos)
 Over_UnderX <- cbind(Overs, Unders)
 Over_UnderX <- Over_UnderX %>% gather(Ov_Und, PropPosition, "over","under") 
 ggplot(Over_UnderX, aes(PropPosition, fill = Ov_Und)) + geom_density(alpha = 0.2) + scale_fill_manual(values=myCols2)
-X_Axis <- prop.test(x=c(sum(X_Shoots$X_Over), sum(X_Shoots$X_Under)), n = c(nrow(X_Shoots), nrow(X_Shoots)), alternative = "less")
-X_Axis
+#X_Axis <- prop.test(x=c(sum(X_Shoots$X_Over), sum(X_Shoots$X_Under)), n = c(nrow(X_Shoots), nrow(X_Shoots)), alternative = "less")
+#X_Axis
 # Y over/under
 Y_Shoots <- EGOdf
 Y_Shoots$Y_Under <- ifelse(Y_Shoots$Y_Shoot > 0, 0, 1)  
@@ -195,8 +201,8 @@ Unders <- data.frame(under=PropYUnder$PropPos)
 Over_UnderY <- cbind(Overs, Unders)
 Over_UnderY <- Over_UnderY %>% gather(Ov_Und, PropPosition, "over","under") 
 ggplot(Over_UnderY, aes(PropPosition, fill = Ov_Und)) + geom_density(alpha = 0.2) + scale_fill_manual(values=myCols2)
-Y_Axis <- prop.test(x=c(sum(Y_Shoots$Y_Over), sum(Y_Shoots$Y_Under)), n = c(nrow(Y_Shoots), nrow(Y_Shoots)))
-Y_Axis
+#Y_Axis <- prop.test(x=c(sum(Y_Shoots$Y_Over), sum(Y_Shoots$Y_Under)), n = c(nrow(Y_Shoots), nrow(Y_Shoots)))
+#Y_Axis
 
 
 # Diff Bw TBI and non for X undershoots?
@@ -208,17 +214,51 @@ X_OverPlot <- ggplot(PropXUnderTBI  ) + geom_col(aes(x=TBI_Non, y=PropPos), fill
   labs(x = "", y = "Proportion Horizontal Undershoots") + geom_hline(aes(slope = 0, yintercept = 0.5), linetype="dashed" ) +
   theme_minimal() + scale_x_discrete(labels=c("Non" = "Control", "Short" = "mTBI", "Long"= "PCS")) + ylim(0,1)
 
+
+# Diff Bw TBI and non for X undershoots?
+PropXUnderTots <- X_Shoots %>% group_by(TBI_Non) %>%
+  dplyr::summarise(Tot = sum(X_Under), PropPos = mean(X_Under), CorrSD = sd(X_Under), Num = n(), CorrSE = CorrSD/115) # Make n number of partic not 
+
+library("DescTools") # This package masks %like% detatch after use
+BinomCI1 <- BinomCI(x=PropXUnderTots$Tot, n=PropXUnderTots$Num, method="jeffreys", sides="two.sided")
+PropXUnderTots <- cbind(PropXUnderTots, BinomCI1)
+#detach("package:DescTools")
+
+PropXUnderTots <-PropXUnderTots %>% add_row(TBI_Non="Long", Tot= (PropXUnderTots$Num[1]-PropXUnderTots$Tot[1]),PropPos=((PropXUnderTots$Num[1]-PropXUnderTots$Tot[1]) /PropXUnderTots$Num[1]), CorrSD=NA, Num=PropXUnderTots$Num[1], CorrSE=NA)
+PropXUnderTots <-PropXUnderTots %>% add_row(TBI_Non="Non", Tot= (PropXUnderTots$Num[2] - PropXUnderTots$Tot[2]),PropPos=(PropXUnderTots$Num[2]-PropXUnderTots$Tot[2]) / PropXUnderTots$Num[2], CorrSD=NA, Num=PropXUnderTots$Num[2], CorrSE=NA)
+PropXUnderTots <-PropXUnderTots %>% add_row(TBI_Non="Short", Tot= (PropXUnderTots$Num[3] - PropXUnderTots$Tot[3]),PropPos=(PropXUnderTots$Num[3]-PropXUnderTots$Tot[3]) / PropXUnderTots$Num[3], CorrSD=NA, Num=PropXUnderTots$Num[3], CorrSE=NA)
+
+PropXUnderTots$TBI_Non <- factor(PropXUnderTots$TBI_Non, levels = c("Non", "Short", "Long"))
+X_OverPlot <- ggplot(PropXUnderTots) + geom_col(aes(x=TBI_Non, y=(PropPos*100)), fill=myCols3LightDark, alpha = 0.7) + geom_errorbar(aes(x = TBI_Non, ymin = (lwr.ci*100), ymax = (upr.ci*100)), width=.2,
+                 position=position_dodge(.9))  + labs(x = " ", y = "Percentage Horizontal Undershoots") + 
+  geom_hline(aes(slope = 0, yintercept = 50), linetype="dashed" ) + theme_classic() + ylim(0,100)+
+  scale_x_discrete(labels=c("Non" = "Control", "Short" = "mTBI", "Long"= "PCS"))
+
+
 # differences bw groups
 propX_TBI <- prop.test(x=c((PropXUnderTBI$Num[1] * PropXUnderTBI$PropPos[1]),(PropXUnderTBI$Num[2] * PropXUnderTBI$PropPos[2]), (PropXUnderTBI$Num[3] * PropXUnderTBI$PropPos[3])),n=c(PropXUnderTBI$Num[1],PropXUnderTBI$Num[2] ,PropXUnderTBI$Num[3])) 
 
+
 # Diff Bw TBI and non for Y undershoots?
-PropYUnderTBI <- Y_Shoots %>% group_by(TBI_Non) %>%
-  dplyr::summarise(PropPos = mean(Y_Under), CorrSD = sd(Y_Under), Num = n(), CorrSE = CorrSD/115)
- 
-PropYUnderTBI$TBI_Non <- factor(PropYUnderTBI$TBI_Non, levels = c("Non", "Short", "Long"))
-Y_OverPlot <- ggplot(PropYUnderTBI) + geom_col(aes(x=TBI_Non, y=PropPos), fill=myCols3, alpha = 0.7) + geom_errorbar(aes(x = TBI_Non, ymin = PropPos-CorrSE*1.96, ymax = PropPos + CorrSE*1.96), width=.2, position=position_dodge(.9))  + 
-  labs(x = "", y = "Proportion Vertical Undershoots") + geom_hline(aes(slope = 0, yintercept = 0.5), linetype="dashed" ) +
-  theme_minimal() +scale_x_discrete(labels=c("Non" = "Control", "Short" = "mTBI", "Long"= "PCS")) + ylim(0,1)
+PropYUnderTots <- Y_Shoots %>% group_by(TBI_Non) %>%
+  dplyr::summarise(Tot = sum(Y_Under), PropPos = mean(Y_Under), CorrSD = sd(Y_Under), Num = n(), CorrSE = CorrSD/115) # Make n number of partic not 
+
+library("DescTools") # This package masks %like% detatch after use
+BinomCI1 <- BinomCI(x=PropYUnderTots$Tot, n=PropYUnderTots$Num, method="jeffreys", sides="two.sided")
+PropYUnderTots <- cbind(PropYUnderTots, BinomCI1)
+detach("package:DescTools")
+
+PropYUnderTots <-PropYUnderTots %>% add_row(TBI_Non="Long", Tot= (PropYUnderTots$Num[1]-PropYUnderTots$Tot[1]),PropPos=((PropYUnderTots$Num[1]-PropYUnderTots$Tot[1]) /PropYUnderTots$Num[1]), CorrSD=NA, Num=PropYUnderTots$Num[1], CorrSE=NA)
+PropYUnderTots <-PropYUnderTots %>% add_row(TBI_Non="Non", Tot= (PropYUnderTots$Num[2] - PropYUnderTots$Tot[2]),PropPos=(PropYUnderTots$Num[2]-PropYUnderTots$Tot[2]) / PropYUnderTots$Num[2], CorrSD=NA, Num=PropYUnderTots$Num[2], CorrSE=NA)
+PropYUnderTots <-PropYUnderTots %>% add_row(TBI_Non="Short", Tot= (PropYUnderTots$Num[3] - PropYUnderTots$Tot[3]),PropPos=(PropYUnderTots$Num[3]-PropYUnderTots$Tot[3]) / PropYUnderTots$Num[3], CorrSD=NA, Num=PropYUnderTots$Num[3], CorrSE=NA)
+
+PropYUnderTots$TBI_Non <- factor(PropYUnderTots$TBI_Non, levels = c("Non", "Short", "Long"))
+Y_OverPlot <- ggplot(PropYUnderTots) + geom_col(aes(x=TBI_Non, y=(PropPos*100)), fill=myCols3LightDark, alpha = 0.7) + geom_errorbar(aes(x = TBI_Non, ymin = (lwr.ci*100), ymax = (upr.ci*100)), width=.2,
+                 position=position_dodge(.9))  + labs(x = " ", y = "Percentage Vertical Undershoots") + 
+  geom_hline(aes(slope = 0, yintercept = 50), linetype="dashed" ) + theme_classic() + ylim(0,100)+
+  scale_x_discrete(labels=c("Non" = "Control", "Short" = "mTBI", "Long"= "PCS"))
+
+
 
 propY_TBI <- prop.test(x=c((PropYUnderTBI$Num[1] * PropYUnderTBI$PropPos[1]),(PropYUnderTBI$Num[2] * PropYUnderTBI$PropPos[2]),(PropYUnderTBI$Num[3] * PropYUnderTBI$PropPos[3])),n=c(PropYUnderTBI$Num[1],PropYUnderTBI$Num[2],PropYUnderTBI$Num[3] )) 
 
@@ -274,14 +314,14 @@ stat.test <- compare_means(
  method = "wilcox.test", p.adjust.method = "holm"
 )
 stat.test <- stat.test %>%
- mutate(y.position = c(1, 1.3, 1.6))
+ mutate(y.position = c(1, 1.3, 1.8))
 
 H_Fix <- ggplot(FIXdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long")), y =   HVA_Mean_deg, color =  TBI_Non)) + 
   geom_boxplot(outlier.shape = NA)+ 
   geom_jitter(shape=16, position=position_jitter(0.2), alpha=0.4)+
   scale_color_manual(values=c( "#D55E00", "#56B4E9", "#009E73")) +
   scale_x_discrete(labels=c("Control","mTBI","PCS")) +
-  theme_minimal() + theme(legend.position="none")+
+  theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("Horizontal Visual Angle Error (deg)")+
   geom_hline(yintercept=0, linetype="dashed", color="#5f6061")+
   stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
@@ -305,7 +345,7 @@ V_Fix <- ggplot(FIXdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long"
   geom_jitter(shape=16, position=position_jitter(0.2), alpha=0.4)+
   scale_color_manual(values=c( "#D55E00", "#56B4E9", "#009E73")) +
   scale_x_discrete(labels=c("Control","mTBI","PCS")) +
-  theme_minimal() + theme(legend.position="none")+
+  theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("Vertical Visual Angle Error (deg)")+
   geom_hline(yintercept=0, linetype="dashed", color="#5f6061")+
   stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
@@ -330,14 +370,14 @@ B_Fix <- ggplot(FIXdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long"
   geom_jitter(shape=16, position=position_jitter(0.2), alpha=0.4)+
   scale_color_manual(values=c( "#D55E00", "#56B4E9", "#009E73")) +
   scale_x_discrete(labels=c("Control","mTBI","PCS")) +
-  theme_minimal() + theme(legend.position="none")+
+  theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("BCEA Log10 (MinArc2)")+
   #geom_hline(yintercept=0, linetype="dashed", color="#5f6061")+
   stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
 
 
 FixPlots <- ggarrange(B_Fix, NULL,   H_Fix, V_Fix, labels = c( "A" ,"", "B", "C"))
-ggsave("FixPlots.png", width = 22, height = 20, units = "cm")
+ggsave("FixPlots.png", width = 30, height = 20, units = "cm")
 ```
 
 ## Pursuits
@@ -416,7 +456,7 @@ T_Pur <- ggplot(PURdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long"
   geom_jitter(shape=16, position=position_jitter(0.2), alpha=0.4)+
   scale_color_manual(values=c( "#D55E00", "#56B4E9", "#009E73")) +
   scale_x_discrete(labels=c("Control","mTBI","PCS")) +
-  theme_minimal() + theme(legend.position="none")+
+  theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("Total Visual Angle Error (deg)")+
   geom_hline(yintercept=0, linetype="dashed", color="#5f6061")+
   stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
@@ -438,7 +478,7 @@ H_Pur <- ggplot(PURdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long"
   geom_jitter(shape=16, position=position_jitter(0.2), alpha=0.4)+
   scale_color_manual(values=c( "#D55E00", "#56B4E9", "#009E73")) +
   scale_x_discrete(labels=c("Control","mTBI","PCS")) +
-  theme_minimal() + theme(legend.position="none")+
+  theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("Horizontal Visual Angle Error (deg)")+
   geom_hline(yintercept=0, linetype="dashed", color="#5f6061")+
   stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
@@ -460,7 +500,7 @@ V_Pur <- ggplot(PURdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long"
   geom_jitter(shape=16, position=position_jitter(0.2), alpha=0.4)+
   scale_color_manual(values=c( "#D55E00", "#56B4E9", "#009E73")) +
   scale_x_discrete(labels=c("Control","mTBI","PCS")) +
-  theme_minimal() + theme(legend.position="none")+
+  theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("Vertical Visual Angle Error (deg)")+
   geom_hline(yintercept=0, linetype="dashed", color="#5f6061")+
   stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}")
@@ -485,7 +525,7 @@ T_Gain <- ggplot(PURdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long
   geom_jitter(shape=16, position=position_jitter(0.2), alpha=0.4)+
   scale_color_manual(values=c( "#D55E00", "#56B4E9", "#009E73")) +
   scale_x_discrete(labels=c("Control","mTBI","PCS")) +
-  theme_minimal() + theme(legend.position="none")+
+  theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("Total Gain")+
   geom_hline(yintercept=1, linetype="dashed", color="#5f6061")+
   stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}")
@@ -508,7 +548,7 @@ H_Gain <- ggplot(PURdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long
   geom_jitter(shape=16, position=position_jitter(0.2), alpha=0.4)+
   scale_color_manual(values=c( "#D55E00", "#56B4E9", "#009E73")) +
   scale_x_discrete(labels=c("Control","mTBI","PCS")) +
-  theme_minimal() + theme(legend.position="none")+
+  theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("Horizontal Gain")+
   geom_hline(yintercept=1, linetype="dashed", color="#5f6061")+
   stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}")
@@ -524,14 +564,14 @@ diffs <- PURdf %>% group_by(TBI_Non) %>%
 stat.test <- compare_means(
  Gain_Vert ~ TBI_Non, data = PURdf, method = "wilcox.test", p.adjust.method = "holm")#
 stat.test <- stat.test %>%
- mutate(y.position = c(1.8, 1.9,2))
+ mutate(y.position = c(1.8, 1.9,2.1))
 
 V_Gain <- ggplot(PURdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long")), y = Gain_Vert, color = TBI_Non)) + 
   geom_boxplot(outlier.shape = NA)+ 
   geom_jitter(shape=16, position=position_jitter(0.2), alpha=0.4)+
   scale_color_manual(values=c( "#D55E00", "#56B4E9", "#009E73")) +
   scale_x_discrete(labels=c("Control","mTBI","PCS")) +
-  theme_minimal() + theme(legend.position="none")+
+  theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("Vertical Gain")+
   geom_hline(yintercept=1, linetype="dashed", color="#5f6061")+
   stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}")
@@ -554,7 +594,7 @@ N_Sacs <- ggplot(PURdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long
   geom_jitter(shape=16, position=position_jitter(0.2), alpha=0.4)+
   scale_color_manual(values=c( "#D55E00", "#56B4E9", "#009E73")) +
   scale_x_discrete(labels=c("Control","mTBI","PCS")) +
-  theme_minimal() + theme(legend.position="none")+
+  theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("Number of Saccades")+
   #geom_hline(yintercept=1, linetype="dashed", color="#5f6061")+
   stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}")
@@ -604,7 +644,13 @@ GetSummaryTablesCIs(SACdf, colNames, testTitle)
 ## Pro Sac
 K_test_Pres <-  kruskal_test(Test_Corr_R ~ TBI_Non, data = subset(SACdf, TargType_Unity %like% "ProSac"))
 diffs <- subset(SACdf, TargType_Unity %like% "ProSac") %>% group_by(TBI_Non) %>%
-  dplyr::summarise(Medians = median(Test_Corr_R, na.rm = T), Mean = mean(Test_Corr_R, na.rm = T), SD = sd(Test_Corr_R, na.rm = T),  CorrSE = SD/115)
+  dplyr::summarise(Tot = sum(Test_Corr_R, na.rm = T), Medians = median(Test_Corr_R, na.rm = T), Mean = mean(Test_Corr_R, na.rm = T), Percentage=(mean(Test_Corr_R, na.rm = T)*100), SD = sd(Test_Corr_R, na.rm = T), Num = n(), CorrSE = SD/115)
+
+
+library("DescTools") # This package masks %like% detatch after use
+BinomCI1 <- BinomCI(x=diffs$Tot, n=diffs$Num, method="jeffreys", sides="two.sided")
+diffs <- cbind(diffs, BinomCI1)
+#detach("package:DescTools")
 
 
 stat.test <- compare_means(
@@ -612,14 +658,14 @@ stat.test <- compare_means(
  method = "wilcox.test", p.adjust.method = "holm"
 )
 stat.test <- stat.test %>%
- mutate(y.position = c(0.90, 1, 1.1))
+ mutate(y.position = c(92, 100, 110))
 
-PT_Sac <- ggbarplot(diffs, x = "TBI_Non", y = "Mean", 
+PT_Sac <- ggbarplot(diffs, x = "TBI_Non", y = "Percentage", 
           color = "TBI_Non",fill = "TBI_Non", palette = myCols3,  #add = "jitter",
           order = c("Non", "Short", "Long"),
-          ylab = "Proportion of Pro-Saccade Trials\nPerformed Correctly", xlab = " ") + 
+          ylab = "Percentage Correct Pro-Saccade Trials", xlab = " ") + 
           scale_x_discrete(labels=c("Control","mTBI","PCS")) +
-  geom_errorbar(aes(x= TBI_Non, ymin= Mean-CorrSE*1.96, ymax = Mean + CorrSE*1.96), width=.2, position=position_dodge(.9)) +
+  geom_errorbar(aes(x= TBI_Non, ymin= (lwr.ci*100), ymax = (upr.ci*100)), width=.2, position=position_dodge(.9)) +
           theme(legend.position = "none")+
     stat_pvalue_manual(stat.test, label = "p.adj") 
    #labs( subtitle = get_test_label(K_test_Pres, detailed = TRUE))
@@ -629,7 +675,12 @@ PT_Sac <- ggbarplot(diffs, x = "TBI_Non", y = "Mean",
 K_test_Pres <-  kruskal_test(Test_Corr_R ~ TBI_Non, data = subset(SACdf, TargType_Unity %like% "AntiSac"))
 
 diffs <- subset(SACdf, TargType_Unity %like% "AntiSac") %>% group_by(TBI_Non) %>%
-  dplyr::summarise(Medians = median(Test_Corr_R, na.rm = T), Mean = mean(Test_Corr_R, na.rm = T), SD = sd(Test_Corr_R, na.rm = T),  CorrSE = SD/115)
+  dplyr::summarise(Tot = sum(Test_Corr_R, na.rm = T), Medians = median(Test_Corr_R, na.rm = T), Mean = mean(Test_Corr_R, na.rm = T), Percentage=(mean(Test_Corr_R, na.rm = T)*100), SD = sd(Test_Corr_R, na.rm = T), Num = n(), CorrSE = SD/115)
+
+library("DescTools") # This package masks %like% detatch after use
+BinomCI1 <- BinomCI(x=diffs$Tot, n=diffs$Num, method="jeffreys", sides="two.sided")
+diffs <- cbind(diffs, BinomCI1)
+detach("package:DescTools")
 
 
 stat.test <- compare_means(
@@ -637,14 +688,14 @@ stat.test <- compare_means(
  method = "wilcox.test", p.adjust.method = "holm"
 )
 stat.test <- stat.test %>%
- mutate(y.position = c(0.90, 1, 1.1))
+ mutate(y.position = c(92, 100, 110))
 
-AT_Sac <- ggbarplot(diffs, x = "TBI_Non", y = "Mean", 
+AT_Sac <- ggbarplot(diffs, x = "TBI_Non", y = "Percentage", 
           color = "TBI_Non", fill = "TBI_Non", palette = myCols3, 
           order = c("Non", "Short", "Long"),
-          ylab = "Proportion of Anti-Saccade Trials\nPerformed Correctly", xlab = " ") + 
+          ylab = "Percentage Correct Anti-Saccade Trials", xlab = " ") + 
           scale_x_discrete(labels=c("Control","mTBI","PCS")) +
-          geom_errorbar(aes(x= TBI_Non, ymin= Mean-CorrSE*1.96, ymax = Mean + CorrSE*1.96), width=.2, position=position_dodge(.9)) +
+          geom_errorbar(aes(x= TBI_Non, ymin= (lwr.ci*100), ymax = (upr.ci*100)), width=.2, position=position_dodge(.9)) +
           #geom_hline(yintercept=0, linetype="dashed", color="#5f6061")+
           theme(legend.position = "none")+
     stat_pvalue_manual(stat.test, label = "p.adj") 
@@ -652,6 +703,7 @@ AT_Sac <- ggbarplot(diffs, x = "TBI_Non", y = "Mean",
 
 SacTrialPlots<- ggarrange(PT_Sac , AT_Sac,  labels = c( "A" ,"B"))
 ggsave("SacTrialPlots.png", width = 20, height = 10, units = "cm")
+
 
 ```
 
@@ -675,7 +727,7 @@ PL_Sac <- ggplot(subset(SACdf, TargType_Unity %like% "ProSac"), aes(x = factor(T
   geom_jitter(shape=16, position=position_jitter(0.2), alpha=0.4)+
   scale_color_manual(values=c( "#D55E00", "#56B4E9", "#009E73")) +
   scale_x_discrete(labels=c("Control","mTBI","PCS")) +
-  theme_minimal() + theme(legend.position="none")+
+  theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("Pro-Saccade Latency (ms)")+
   stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
 
@@ -696,7 +748,7 @@ AL_Sac <- ggplot(subset(SACdf, TargType_Unity %like% "Anti"), aes(x = factor(TBI
   geom_jitter(shape=16, position=position_jitter(0.2), alpha=0.4)+
   scale_color_manual(values=c( "#D55E00", "#56B4E9", "#009E73")) +
   scale_x_discrete(labels=c("Control","mTBI","PCS")) +
-  theme_minimal() + theme(legend.position="none")+
+  theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("Anti-Saccade Latency (ms)")+
   stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
 
@@ -722,7 +774,7 @@ PV_Sac <- ggplot(subset(SACdf, TargType_Unity %like% "ProSac"), aes(x = factor(T
   geom_jitter(shape=16, position=position_jitter(0.2), alpha=0.4)+
   scale_color_manual(values=c( "#D55E00", "#56B4E9", "#009E73")) +
   scale_x_discrete(labels=c("Control","mTBI","PCS")) +
-  theme_minimal() + theme(legend.position="none")+
+  theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("Pro-Saccade Velocity (deg/s)")+
   stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
 
@@ -745,7 +797,7 @@ AV_Sac <- ggplot(subset(SACdf, TargType_Unity %like% "Anti"), aes(x = factor(TBI
   geom_jitter(shape=16, position=position_jitter(0.2), alpha=0.4)+
   scale_color_manual(values=c( "#D55E00", "#56B4E9", "#009E73")) +
   scale_x_discrete(labels=c("Control","mTBI","PCS")) +
-  theme_minimal() + theme(legend.position="none")+
+  theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("Anti-Saccade Velocity (deg/s)")+
   stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
 
@@ -800,8 +852,14 @@ GetSummaryTablesCIs(STRdf, colNames, testTitle)
 ## Part one
 K_test_Pres <-  kruskal_test(Test_Corr ~ TBI_Non, data = subset(STRdf, strpPart_Unity == 1))
 
+
 diffs <- subset(STRdf, strpPart_Unity == 1) %>% group_by(TBI_Non) %>%
-  dplyr::summarise(Medians = median(Test_Corr, na.rm = T), Mean = mean(Test_Corr, na.rm = T), SD = sd(Test_Corr, na.rm = T),  CorrSE = SD/115)
+  dplyr::summarise(Tot = sum(Test_Corr, na.rm = T), Medians = median(Test_Corr, na.rm = T), Mean = mean(Test_Corr, na.rm = T), Percentage=(mean(Test_Corr, na.rm = T)*100), SD = sd(Test_Corr, na.rm = T), Num = n(), CorrSE = SD/115)
+
+library("DescTools") # This package masks %like% detatch after use
+BinomCI1 <- BinomCI(x=diffs$Tot, n=diffs$Num, method="jeffreys", sides="two.sided")
+diffs <- cbind(diffs, BinomCI1)
+#detach("package:DescTools")
 
 
 stat.test <- compare_means(
@@ -809,16 +867,17 @@ stat.test <- compare_means(
  method = "wilcox.test", p.adjust.method = "holm"
 )
 stat.test <- stat.test %>%
- mutate(y.position = c( 1, 1.1, 1.2))
+ mutate(y.position = c( 100, 110, 120))
 
-P1_Sac <- ggbarplot(diffs, x = "TBI_Non", y = "Mean", 
+P1_Sac <- ggbarplot(diffs, x = "TBI_Non", y = "Percentage", 
           color = "TBI_Non",fill = "TBI_Non", palette = myCols3,  #add = "jitter",
           order = c("Non", "Short", "Long"),
-          ylab = "Proportion of Part One Trials\nPerformed Correctly", xlab = " ") + 
+          ylab = "Percentage Correct Part One Trials", xlab = " ") + 
           scale_x_discrete(labels=c("Control","mTBI","PCS")) +
-  geom_errorbar(aes(x= TBI_Non, ymin= Mean-CorrSE*1.96, ymax = Mean + CorrSE*1.96), width=.2, position=position_dodge(.9)) +
+  geom_errorbar(aes(x= TBI_Non, ymin= (lwr.ci*100), ymax = (upr.ci*100)), width=.2, position=position_dodge(.9)) +
           theme(legend.position = "none")+
-    stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
+    stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") +
+  scale_y_continuous(breaks=c(0, 25, 50, 75, 100))
    #labs( subtitle = get_test_label(K_test_Pres, detailed = TRUE))
 
 
@@ -826,25 +885,30 @@ P1_Sac <- ggbarplot(diffs, x = "TBI_Non", y = "Mean",
 K_test_Pres <-  kruskal_test(Test_Corr ~ TBI_Non, data = subset(STRdf, strpPart_Unity == 2))
 
 diffs <- subset(STRdf, strpPart_Unity == 2) %>% group_by(TBI_Non) %>%
-  dplyr::summarise(Medians = median(Test_Corr, na.rm = T), Mean = mean(Test_Corr, na.rm = T), SD = sd(Test_Corr, na.rm = T),  CorrSE = SD/115)
+  dplyr::summarise(Tot = sum(Test_Corr, na.rm = T), Medians = median(Test_Corr, na.rm = T), Mean = mean(Test_Corr, na.rm = T), Percentage=(mean(Test_Corr, na.rm = T)*100), SD = sd(Test_Corr, na.rm = T), Num = n(), CorrSE = SD/115)
+
+library("DescTools") # This package masks %like% detatch after use
+BinomCI1 <- BinomCI(x=diffs$Tot, n=diffs$Num, method="jeffreys", sides="two.sided")
+diffs <- cbind(diffs, BinomCI1)
+detach("package:DescTools")
 
 stat.test <- compare_means(
  Test_Corr ~ TBI_Non, data = subset(STRdf, strpPart_Unity == 2),
  method = "wilcox.test", p.adjust.method = "holm"
 )
 stat.test <- stat.test %>%
- mutate(y.position = c(1, 1.1, 1.2))
+ mutate(y.position = c(100, 110, 120))
 
-P2_Sac <- ggbarplot(diffs, x = "TBI_Non", y = "Mean", 
+P2_Sac <- ggbarplot(diffs, x = "TBI_Non", y = "Percentage", 
           color = "TBI_Non", fill = "TBI_Non", palette = myCols3, 
           order = c("Non", "Short", "Long"),
-          ylab = "Proportion of Part Two Trials\nPerformed Correctly", xlab = " ") + 
+          ylab = "Percentage Correct Part Two Trials", xlab = " ") + 
           scale_x_discrete(labels=c("Control","mTBI","PCS")) +
-          geom_errorbar(aes(x= TBI_Non, ymin= Mean-CorrSE*1.96, ymax = Mean + CorrSE*1.96), width=.2, position=position_dodge(.9)) +
+          geom_errorbar(aes(x= TBI_Non, ymin=(lwr.ci*100), ymax = (upr.ci*100)), width=.2, position=position_dodge(.9)) +
           #geom_hline(yintercept=0, linetype="dashed", color="#5f6061")+
           theme(legend.position = "none")+
-    stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
-   #labs( subtitle = get_test_label(K_test_Pres, detailed = TRUE))
+    stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}")+
+  scale_y_continuous(breaks=c(0, 25, 50, 75, 100))
 
 StrTrialPlots<- ggarrange(P1_Sac , P2_Sac,  labels = c( "A" ,"B"))
 ggsave("StrTrialPlots.png", width = 20, height = 10, units = "cm")
@@ -878,7 +942,7 @@ TT1_Str <- ggplot(P1_tots, aes(x = factor(TBI_Non, levels = c("Non", "Short", "L
   geom_jitter(shape=16, position=position_jitter(0.2), alpha=0.4)+
   scale_color_manual(values=c( "#D55E00", "#56B4E9", "#009E73")) +
   scale_x_discrete(labels=c("Control","mTBI","PCS")) +
-  theme_minimal() + theme(legend.position="none")+
+  theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("Part One Total Test Time (s)")+
   stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
 
@@ -908,7 +972,7 @@ TT2_Str <- ggplot(P2_tots, aes(x = factor(TBI_Non, levels = c("Non", "Short", "L
   geom_jitter(shape=16, position=position_jitter(0.2), alpha=0.4)+
   scale_color_manual(values=c( "#D55E00", "#56B4E9", "#009E73")) +
   scale_x_discrete(labels=c("Control","mTBI","PCS")) +
-  theme_minimal() + theme(legend.position="none")+
+  theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("Part Two Total Test Time (s)")+
   stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
 
@@ -934,7 +998,7 @@ P1_Str <- ggplot(subset(STRdf, strpPart_Unity == 1), aes(x = factor(TBI_Non, lev
   geom_jitter(shape=16, position=position_jitter(0.2), alpha=0.4)+
   scale_color_manual(values=c( "#D55E00", "#56B4E9", "#009E73")) +
   scale_x_discrete(labels=c("Control","mTBI","PCS")) +
-  theme_minimal() + theme(legend.position="none")+
+  theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("Part One Latency (ms)")+
   stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
 
@@ -959,7 +1023,7 @@ P2_Str <- ggplot(subset(STRdf, strpPart_Unity == 2), aes(x = factor(TBI_Non, lev
   geom_jitter(shape=16, position=position_jitter(0.2), alpha=0.4)+
   scale_color_manual(values=c( "#D55E00", "#56B4E9", "#009E73")) +
   scale_x_discrete(labels=c("Control","mTBI","PCS")) +
-  theme_minimal() + theme(legend.position="none")+
+  theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("Part Two Latency (ms)")+
   stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
 
@@ -984,8 +1048,8 @@ VOR_Healthy <- VOR_Healthy[-c(7)]
 Vor_ShortTerm$ID <- paste(Vor_ShortTerm$ID, 2, sep = "_")
 VOR_LongTerm$ID <- paste(VOR_LongTerm$ID, 3, sep = "_")
 
-VOR_Healthy$Time_Max_Gain <- VOR_Healthy$Time_Max_Gain * 1000
-Vor_ShortTerm$Time_Max_Gain <- Vor_ShortTerm$Time_Max_Gain * 1000
+#VOR_Healthy$Time_Max_Gain <- VOR_Healthy$Time_Max_Gain * 1000
+#Vor_ShortTerm$Time_Max_Gain <- Vor_ShortTerm$Time_Max_Gain * 1000
 
 
 VORdf <- rbind(VOR_Healthy, Vor_ShortTerm, VOR_LongTerm)
@@ -1044,7 +1108,7 @@ B_VOR <- ggplot(VORdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long"
   geom_jitter(shape=16, position=position_jitter(0.2), alpha=0.4)+
   scale_color_manual(values=c( "#D55E00", "#56B4E9", "#009E73")) +
   scale_x_discrete(labels=c("Control","mTBI","PCS")) +
-  theme_minimal() + theme(legend.position="none")+
+  theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("BCEA Log10 (MinArc2)")+
   #geom_hline(yintercept=0, linetype="dashed", color="#5f6061")+
   stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
@@ -1062,17 +1126,17 @@ stat.test <- compare_means(
  method = "wilcox.test", p.adjust.method = "holm"
 )
 stat.test <- stat.test %>%
- mutate(y.position = c(6,7,8.5))
+ mutate(y.position = c(3,4.5,6))
 
 H_VOR <- ggplot(VORdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long")), y = HVA_Mean_deg, color = TBI_Non)) + 
   geom_boxplot(outlier.shape = NA)+ 
   geom_jitter(shape=16, position=position_jitter(0.2), alpha=0.4)+
   scale_color_manual(values=c( "#D55E00", "#56B4E9", "#009E73")) +
   scale_x_discrete(labels=c("Control","mTBI","PCS")) +
-  theme_minimal() + theme(legend.position="none")+
+  theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("Horizontal Visual Angle Error (deg)")+
   geom_hline(yintercept=0, linetype="dashed", color="#5f6061")+
-  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") + ylim(-6, 6)
 
 ```
 
@@ -1094,7 +1158,7 @@ V_VOR <- ggplot(VORdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long"
   geom_jitter(shape=16, position=position_jitter(0.2), alpha=0.4)+
   scale_color_manual(values=c( "#D55E00", "#56B4E9", "#009E73")) +
   scale_x_discrete(labels=c("Control","mTBI","PCS")) +
-  theme_minimal() + theme(legend.position="none")+
+  theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("Vertical Visual Angle Error (deg)")+
   geom_hline(yintercept=0, linetype="dashed", color="#5f6061")+
   stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
@@ -1121,7 +1185,7 @@ G_VOR <- ggplot(VORdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long"
   geom_jitter(shape=16, position=position_jitter(0.2), alpha=0.4)+
   scale_color_manual(values=c( "#D55E00", "#56B4E9", "#009E73")) +
   scale_x_discrete(labels=c("Control","mTBI","PCS")) +
-  theme_minimal() + theme(legend.position="none")+
+  theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("Gain")+
   geom_hline(yintercept=1, linetype="dashed", color="#5f6061")+
   stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
@@ -1145,7 +1209,7 @@ TG_VOR <- ggplot(VORdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long
   geom_jitter(shape=16, position=position_jitter(0.2), alpha=0.4)+
   scale_color_manual(values=c( "#D55E00", "#56B4E9", "#009E73")) +
   scale_x_discrete(labels=c("Control","mTBI","PCS")) +
-  theme_minimal() + theme(legend.position="none")+
+  theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("Time to Maximum Gain (ms)")+
   #geom_hline(yintercept=1, linetype="dashed", color="#5f6061")+
   stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
@@ -1169,7 +1233,7 @@ HS_VOR <- ggplot(VORdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long
   geom_jitter(shape=16, position=position_jitter(0.2), alpha=0.4)+
   scale_color_manual(values=c( "#D55E00", "#56B4E9", "#009E73")) +
   scale_x_discrete(labels=c("Control","mTBI","PCS")) +
-  theme_minimal() + theme(legend.position="none")+
+  theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("Number of Horizontal Saccades")+
   #geom_hline(yintercept=1, linetype="dashed", color="#5f6061")+
   stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 

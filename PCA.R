@@ -35,7 +35,7 @@ colnames(proSAC)[colnames(proSAC) == 'Saccade_Latency'] <- 'ProSac.Saccade_Laten
 colnames(proSAC)[colnames(proSAC) == 'Saccade_Vel_Deg_s'] <- 'ProSac.Saccade_Vel_Deg_s'
 
 maxN <- proSAC %>% group_by(ID) %>% dplyr::summarize(count=n())
-view(maxN)
+#view(maxN)
 proSAC <- proSAC %>% filter(ID != "MS_3")
 proSAC <- proSAC %>% group_by(ID) %>% mutate(TrialNum = seq(1:14))  
 
@@ -45,13 +45,13 @@ colnames(antSAC)[colnames(antSAC) == 'Test_Corr_R']       <- 'AntSac.Test_Corr'
 colnames(antSAC)[colnames(antSAC) == 'Saccade_Latency']   <- 'AntSac.Saccade_Latency'
 colnames(antSAC)[colnames(antSAC) == 'Saccade_Vel_Deg_s'] <- 'AntSac.Saccade_Vel_Deg_s'
 
-view(antSAC)
+#view(antSAC)
 antSAC <- antSAC %>% filter(ID != "MS_3")
 antSAC <- antSAC %>% group_by(ID) %>% mutate(TrialNum = seq(1:14))   
 
 Saccades <- merge(proSAC, antSAC, by = c( "ID", "TrialNum"), all = TRUE)
-view(Saccades)
-str(Saccades)
+#view(Saccades)
+#str(Saccades)
 Saccades$TrialNum <-  as.numeric(Saccades$TrialNum)
 colnames(Saccades)[colnames(Saccades) == 'TBI_Non.x']       <- 'TBI_Non'
 Saccades <- Saccades[-c(10)]
@@ -71,71 +71,71 @@ colnames(p2STR)[colnames(p2STR) == 'Saccade_Latency'] <- 'P2Str.Saccade_Latency'
 colnames(p2STR)[colnames(p2STR) == 'trialTime'] <- 'P2Str.trialTime'
 
 Stroop <- merge(p1STR, p2STR, by = c( "ID", "TrialNum"), all = TRUE)
-view(Stroop)
-str(Stroop)
+#view(Stroop)
+#str(Stroop)
 Stroop$TrialNum <-  as.numeric(Stroop$TrialNum)
 colnames(Stroop)[colnames(Stroop) == 'TBI_Non.y']       <- 'TBI_Non'
 Stroop <- Stroop[-c(21)]
 
 Str_Sac <- merge(Stroop, Saccades, by = c( "ID", "TrialNum"), all = TRUE)
-view(Str_Sac)
-str(Str_Sac)
+#view(Str_Sac)
+#str(Str_Sac)
 Str_Sac$TrialNum <-  as.numeric(Str_Sac$TrialNum)
 colnames(Str_Sac)[colnames(Str_Sac) == 'TBI_Non.x']       <- 'TBI_Non'
 Str_Sac <- Str_Sac[-c(10)]
 
 VORdf <- VORdf[-c(10)]
-colnames(VORdf)[colnames(VORdf) == 'BCEA_68_Log10']       <- 'VOR.Num_Sacs'
+colnames(VORdf)[colnames(VORdf) == 'BCEA_68_Log10']       <- 'VOR.BCEA_68_Log10'
 colnames(VORdf)[colnames(VORdf) == 'HVA_Mean_deg']        <- 'VOR.HVA_Mean_deg'
 colnames(VORdf)[colnames(VORdf) == 'VVA_Mean_deg']        <- 'VOR.VVA_Mean_deg'
 colnames(VORdf)[colnames(VORdf) == 'Gain']                 <-'VOR.Gain'
 colnames(VORdf)[colnames(VORdf) == 'Time_Max_Gain']        <-'VOR.Time_Max_Gain'
 colnames(VORdf)[colnames(VORdf) == 'Horiz_Saccade_Number'] <-'VOR.Horiz_Saccade_Number'
 
-view(VORdf)
-str(VORdf)
+#view(VORdf)
+#str(VORdf)
 VORdf$TrialNum <-  as.numeric(VORdf$TrialNum)
 
 Str_Sac_V <- merge(VORdf, Str_Sac, by = c( "ID", "TrialNum"), all = TRUE)
-view(Str_Sac_V)
-str(Str_Sac_V)
+#view(Str_Sac_V)
+#str(Str_Sac_V)
 Str_Sac_V$TrialNum <-  as.numeric(Str_Sac_V$TrialNum)
 colnames(Str_Sac_V)[colnames(Str_Sac_V) == 'TBI_Non.x']       <- 'TBI_Non'
 Str_Sac_V <- Str_Sac_V[-c(14, 21)]
 
 
-view(EGOdf)
-str(EGOdf)
+#view(EGOdf)
+#str(EGOdf)
 EGOdf$TrialNum <-  as.numeric(EGOdf$TrialNum)
 
 Str_Sac_V_E <- merge(Str_Sac_V, EGOdf, by = c( "ID", "TrialNum"), all = TRUE)
-view(Str_Sac_V_E)
-str(Str_Sac_V_E)
+#view(Str_Sac_V_E)
+#str(Str_Sac_V_E)
 Str_Sac_V_E$TrialNum <-  as.numeric(Str_Sac_V_E$TrialNum)
 colnames(Str_Sac_V_E)[colnames(Str_Sac_V_E) == 'TBI_Non.x']       <- 'TBI_Non'
 Str_Sac_V_E <- Str_Sac_V_E[-c(25)]
 
 
-view(PURdf)
-str(PURdf)
+#view(PURdf)
+#str(PURdf)
 PURdf$TrialNum <-  as.numeric(PURdf$TrialNum)
 
 Str_Sac_V_E_P <- merge(Str_Sac_V_E, PURdf, by = c( "ID", "TrialNum"), all = TRUE)
-view(Str_Sac_V_E_P)
-str(Str_Sac_V_E_P)
+#view(Str_Sac_V_E_P)
+#str(Str_Sac_V_E_P)
 Str_Sac_V_E_P$TrialNum <-  as.numeric(Str_Sac_V_E_P$TrialNum)
 colnames(Str_Sac_V_E_P)[colnames(Str_Sac_V_E_P) == 'TBI_Non.x']       <- 'TBI_Non'
 Str_Sac_V_E_P <- Str_Sac_V_E_P[-c(32)]
 
 
 
-view(FIXdf)
-str(FIXdf)
+#view(FIXdf)
+#str(FIXdf)
 FIXdf$TrialNum <-  as.numeric(FIXdf$TrialNum)
 
 allTestsdf <- merge(Str_Sac_V_E_P, FIXdf, by = c( "ID", "TrialNum"), all = TRUE)
-view(allTestsdf)
-str(allTestsdf)
+#view(allTestsdf)
+#str(allTestsdf)
 allTestsdf$TrialNum <-  as.numeric(allTestsdf$TrialNum)
 colnames(allTestsdf)[colnames(allTestsdf) == 'TBI_Non.x']       <- 'TBI_Non'
 allTestsdf <- allTestsdf[-c(34)]
