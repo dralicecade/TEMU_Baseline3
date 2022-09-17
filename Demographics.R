@@ -174,3 +174,8 @@ Tot_Ages <- qpcR:::cbind.na(All_lowHigh, MTBI_lowHigh, PPCS_lowHigh)
 Tot_Ages$diff <- Chiro_lowHigh - Control_lowHigh
 mean(Tot_Ages$diff)
 sd(Tot_Ages$diff)
+
+
+#sex balanced?
+Sex <- prop.test(x=c(21, 9, 12), n = c(55, 20, 40))
+Sex
