@@ -3,7 +3,7 @@ library("plyr")
 require("dplyr")
 
 load("allTestsdf.Rda")
-view(allTestsdf)
+#view(allTestsdf)
 
 AllTestsMeans <- ddply(allTestsdf, ~ ID, summarize, meanVORGain = mean(VOR.Gain, na.rm = T), meanVOR.Time_Max_Gain=mean(VOR.Time_Max_Gain, na.rm = T), meanVOR.BCEA=mean(VOR.BCEA_68_Log10, na.rm = T),
                       meanVOR.HVA_Mean_deg=mean(VOR.HVA_Mean_deg, na.rm = T), meanVOR.VVA_Mean_deg=mean(VOR.VVA_Mean_deg, na.rm = T), sumVOR.Horiz_Saccade_Number=sum(VOR.Horiz_Saccade_Number, na.rm = T),

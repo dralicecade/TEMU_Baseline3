@@ -133,7 +133,7 @@ H_Ego <- ggplot(EGOdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long"
   theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("Horizontal error (mm)")+
   geom_hline(yintercept=0, linetype="dashed", color="#5f6061")+
-  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") + theme(text = element_text(size = 16))   
 
 ```
 
@@ -161,7 +161,7 @@ V_Ego <- ggplot(EGOdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long"
   theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("Vertical error (mm)")+
   geom_hline(yintercept=0, linetype="dashed", color="#5f6061")+
-  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") + theme(text = element_text(size = 16))   
 
 
 EgoPlots <- ggarrange(H_Ego, V_Ego, labels = c("A", "B") ) 
@@ -212,7 +212,7 @@ PropXUnderTBI <- X_Shoots %>% group_by(TBI_Non) %>%
 PropXUnderTBI$TBI_Non <- factor(PropXUnderTBI$TBI_Non, levels = c("Non", "Short", "Long"))
 X_OverPlot <- ggplot(PropXUnderTBI  ) + geom_col(aes(x=TBI_Non, y=PropPos), fill=myCols3, alpha = 0.7) + geom_errorbar(aes(x = TBI_Non, ymin = PropPos-CorrSE*1.96, ymax = PropPos + CorrSE*1.96), width=.2, position=position_dodge(.9)) + 
   labs(x = "", y = "Proportion horizontal hndershoots") + geom_hline(aes(slope = 0, yintercept = 0.5), linetype="dashed" ) +
-  theme_minimal() + scale_x_discrete(labels=c("Non" = "Control", "Short" = "mTBI", "Long"= "PPCS")) + ylim(0,1)
+  theme_minimal() + scale_x_discrete(labels=c("Non" = "Control", "Short" = "mTBI", "Long"= "PPCS")) + ylim(0,1) + theme(text = element_text(size = 16)) 
 
 
 # Diff Bw TBI and non for X undershoots?
@@ -232,7 +232,7 @@ PropXUnderTots$TBI_Non <- factor(PropXUnderTots$TBI_Non, levels = c("Non", "Shor
 X_OverPlot <- ggplot(PropXUnderTots) + geom_col(aes(x=TBI_Non, y=(PropPos*100)), fill=myCols3LightDark, alpha = 0.7) + geom_errorbar(aes(x = TBI_Non, ymin = (lwr.ci*100), ymax = (upr.ci*100)), width=.2,
                  position=position_dodge(.9))  + labs(x = " ", y = "Percentage horizontal undershoots") + 
   geom_hline(aes(slope = 0, yintercept = 50), linetype="dashed" ) + theme_classic() + ylim(0,100)+
-  scale_x_discrete(labels=c("Non" = "Control", "Short" = "mTBI", "Long"= "PPCS"))
+  scale_x_discrete(labels=c("Non" = "Control", "Short" = "mTBI", "Long"= "PPCS")) + theme(text = element_text(size = 16)) 
 
 
 # differences bw groups
@@ -256,7 +256,7 @@ PropYUnderTots$TBI_Non <- factor(PropYUnderTots$TBI_Non, levels = c("Non", "Shor
 Y_OverPlot <- ggplot(PropYUnderTots) + geom_col(aes(x=TBI_Non, y=(PropPos*100)), fill=myCols3LightDark, alpha = 0.7) + geom_errorbar(aes(x = TBI_Non, ymin = (lwr.ci*100), ymax = (upr.ci*100)), width=.2,
                  position=position_dodge(.9))  + labs(x = " ", y = "Percentage vertical undershoots") + 
   geom_hline(aes(slope = 0, yintercept = 50), linetype="dashed" ) + theme_classic() + ylim(0,100)+
-  scale_x_discrete(labels=c("Non" = "Control", "Short" = "mTBI", "Long"= "PPCS"))
+  scale_x_discrete(labels=c("Non" = "Control", "Short" = "mTBI", "Long"= "PPCS"))+ theme(text = element_text(size = 16)) 
 
 
 
@@ -324,7 +324,7 @@ H_Fix <- ggplot(FIXdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long"
   theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("Horizontal visual angle error (degrees)")+
   geom_hline(yintercept=0, linetype="dashed", color="#5f6061")+
-  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") + theme(text = element_text(size = 16))
 ```
 ```{r FIXModel_Y, echo=FALSE, message=FALSE, warning=FALSE }
 # difference bw Pre groups
@@ -348,7 +348,7 @@ V_Fix <- ggplot(FIXdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long"
   theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("Vertical Visual Angle Error (degrees)")+
   geom_hline(yintercept=0, linetype="dashed", color="#5f6061")+
-  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") + theme(text = element_text(size = 16))
 
 ```
 
@@ -376,11 +376,11 @@ B_Fix <- ggplot(FIXdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long"
   theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab(my_title)+
   #geom_hline(yintercept=0, linetype="dashed", color="#5f6061")+
-  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") + theme(text = element_text(size = 16))
 
 
 FixPlots <- ggarrange(B_Fix, NULL,   H_Fix, V_Fix, labels = c( "A" ,"", "B", "C"))
-ggsave("FixPlots.png", width = 30, height = 20, units = "cm")
+ggsave("FixPlots.png", width = 30, height = 25, units = "cm")
 ```
 
 ## Pursuits
@@ -462,7 +462,7 @@ T_Pur <- ggplot(PURdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long"
   theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("Total visual angle error (degrees)")+
   geom_hline(yintercept=0, linetype="dashed", color="#5f6061")+
-  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}")  + theme(text = element_text(size = 12))
 
 ```
 
@@ -484,9 +484,10 @@ H_Pur <- ggplot(PURdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long"
   theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("Horizontal visual angle error (degrees)")+
   geom_hline(yintercept=0, linetype="dashed", color="#5f6061")+
-  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}")  + theme(text = element_text(size = 12))
 
 ```
+
 ```{r V_Pur, echo=FALSE, message=FALSE, warning=FALSE }
 K_test_Pres <-  kruskal.test(VVA_Error_Mean_deg ~ TBI_Non, data = PURdf)
 diffs <- PURdf %>% group_by(TBI_Non) %>%
@@ -506,7 +507,7 @@ V_Pur <- ggplot(PURdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long"
   theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("Vertical visual angle error (degrees)")+
   geom_hline(yintercept=0, linetype="dashed", color="#5f6061")+
-  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}")
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") + theme(text = element_text(size = 12))
 
 PurPlots <- ggarrange(T_Pur, NULL,   H_Pur, V_Pur, labels = c( "A" ,"", "B", "C"))
 ggsave("PurPlots.png", width = 22, height = 20, units = "cm")
@@ -531,7 +532,7 @@ T_Gain <- ggplot(PURdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long
   theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("Total gain")+
   geom_hline(yintercept=1, linetype="dashed", color="#5f6061")+
-  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}")
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") + theme(text = element_text(size = 12))
 
 ```
 
@@ -554,7 +555,7 @@ H_Gain <- ggplot(PURdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long
   theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("Horizontal gain")+
   geom_hline(yintercept=1, linetype="dashed", color="#5f6061")+
-  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}")
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") + theme(text = element_text(size = 12))
 
 ```
 
@@ -577,7 +578,7 @@ V_Gain <- ggplot(PURdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long
   theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("Vertical gain")+
   geom_hline(yintercept=1, linetype="dashed", color="#5f6061")+
-  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}")
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") + theme(text = element_text(size = 12))
 
 ```
 
@@ -594,13 +595,13 @@ stat.test <- stat.test %>%
 
 N_Sacs <- ggplot(PURdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long")), y = Num_Sacs, color = TBI_Non)) + 
   geom_boxplot(outlier.shape = NA)+ 
-  geom_jitter(shape=16, position=position_jitter(0.2), alpha=0.4)+
+  geom_jitter(shape=16, width = 0.1, height=0, alpha=0.4)+
   scale_color_manual(values=c( "#D55E00", "#56B4E9", "#009E73")) +
   scale_x_discrete(labels=c("Control","mTBI","PPCS")) +
   theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("Number of saccades")+
   #geom_hline(yintercept=1, linetype="dashed", color="#5f6061")+
-  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}")
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") + theme(text = element_text(size = 12))
 
 PurPlotsGain <- ggarrange(T_Gain , H_Gain, V_Gain, N_Sacs, ncol=2, nrow=2, labels = c( "A" ,"B", "C", "D"))
 ggsave("PurPlotsGain.png", width = 25, height = 20, units = "cm")
@@ -664,7 +665,7 @@ stat.test <- stat.test %>%
  mutate(y.position = c(92, 100, 110))
 
 PT_Sac <- ggbarplot(diffs, x = "TBI_Non", y = "Percentage", 
-          color = "TBI_Non",fill = "TBI_Non", palette = myCols3,  #add = "jitter",
+          color = "TBI_Non",fill = "TBI_Non", palette = myCols3,  alpha = 0.7,  #add = "jitter",
           order = c("Non", "Short", "Long"),
           ylab = "Percentage correct pro-saccade trials", xlab = " ") + 
           scale_x_discrete(labels=c("Control","mTBI","PPCS")) +
@@ -694,7 +695,7 @@ stat.test <- stat.test %>%
  mutate(y.position = c(92, 100, 110))
 
 AT_Sac <- ggbarplot(diffs, x = "TBI_Non", y = "Percentage", 
-          color = "TBI_Non", fill = "TBI_Non", palette = myCols3, 
+          color = "TBI_Non", fill = "TBI_Non", palette = myCols3, alpha = 0.7,
           order = c("Non", "Short", "Long"),
           ylab = "Percentage correct anti-saccade trials", xlab = " ") + 
           scale_x_discrete(labels=c("Control","mTBI","PPCS")) +
@@ -732,7 +733,7 @@ PL_Sac <- ggplot(subset(SACdf, TargType_Unity %like% "ProSac"), aes(x = factor(T
   scale_x_discrete(labels=c("Control","mTBI","PPCS")) +
   theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("Pro-saccade latency (ms)")+
-  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") + theme(text = element_text(size = 12))
 
 ## Anti Sac
 K_test_Pres <-  kruskal_test(Saccade_Latency ~ TBI_Non, data = subset(SACdf, TargType_Unity %like% "AntiSac"))
@@ -753,7 +754,7 @@ AL_Sac <- ggplot(subset(SACdf, TargType_Unity %like% "Anti"), aes(x = factor(TBI
   scale_x_discrete(labels=c("Control","mTBI","PPCS")) +
   theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("Anti-saccade latency (ms)")+
-  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") + theme(text = element_text(size = 12))
 
 ```
 
@@ -779,7 +780,7 @@ PV_Sac <- ggplot(subset(SACdf, TargType_Unity %like% "ProSac"), aes(x = factor(T
   scale_x_discrete(labels=c("Control","mTBI","PPCS")) +
   theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("Pro-saccade velocity (degrees/s)")+
-  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") + theme(text = element_text(size = 12))
 
 
 ## Anti Sac
@@ -802,7 +803,7 @@ AV_Sac <- ggplot(subset(SACdf, TargType_Unity %like% "Anti"), aes(x = factor(TBI
   scale_x_discrete(labels=c("Control","mTBI","PPCS")) +
   theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("Anti-saccade velocity (degrees/s)")+
-  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") + theme(text = element_text(size = 12))
 
 Sac_LV_Plots<- ggarrange(PL_Sac , AL_Sac, PV_Sac , AV_Sac, nrow=2, ncol=2, labels = c( "A" ,"B", "C" ,"D"))
 ggsave("Sac_LV_Plots.png", width = 20, height = 20, units = "cm")
@@ -873,7 +874,7 @@ stat.test <- stat.test %>%
  mutate(y.position = c( 100, 110, 120))
 
 P1_Sac <- ggbarplot(diffs, x = "TBI_Non", y = "Percentage", 
-          color = "TBI_Non",fill = "TBI_Non", palette = myCols3,  #add = "jitter",
+          color = "TBI_Non",fill = "TBI_Non", palette = myCols3, alpha=0.7,  #add = "jitter",
           order = c("Non", "Short", "Long"),
           ylab = "Percentage correct part one trials", xlab = " ") + 
           scale_x_discrete(labels=c("Control","mTBI","PPCS")) +
@@ -903,7 +904,7 @@ stat.test <- stat.test %>%
  mutate(y.position = c(100, 110, 120))
 
 P2_Sac <- ggbarplot(diffs, x = "TBI_Non", y = "Percentage", 
-          color = "TBI_Non", fill = "TBI_Non", palette = myCols3, 
+          color = "TBI_Non", fill = "TBI_Non", palette = myCols3, alpha=0.7,
           order = c("Non", "Short", "Long"),
           ylab = "Percentage correct part two trials", xlab = " ") + 
           scale_x_discrete(labels=c("Control","mTBI","PPCS")) +
@@ -947,7 +948,7 @@ TT1_Str <- ggplot(P1_tots, aes(x = factor(TBI_Non, levels = c("Non", "Short", "L
   scale_x_discrete(labels=c("Control","mTBI","PPCS")) +
   theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("Part one total test time (s)")+
-  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") + theme(text = element_text(size = 12))
 
 ## P2
 P2 <- subset(STRdf, strpPart_Unity == 2)
@@ -977,7 +978,7 @@ TT2_Str <- ggplot(P2_tots, aes(x = factor(TBI_Non, levels = c("Non", "Short", "L
   scale_x_discrete(labels=c("Control","mTBI","PPCS")) +
   theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("Part two total test time (s)")+
-  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") + theme(text = element_text(size = 12))
 
 ```
 
@@ -994,7 +995,7 @@ stat.test <- compare_means(
  method = "wilcox.test", p.adjust.method = "holm"
 )
 stat.test <- stat.test %>%
- mutate(y.position = c(3000,4000, 5000))
+ mutate(y.position = c(3000, 4000, 5000))
 
 P1_Str <- ggplot(subset(STRdf, strpPart_Unity == 1), aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long")), y =   Saccade_Latency, color =  TBI_Non)) + 
   geom_boxplot(outlier.shape = NA)+ 
@@ -1002,8 +1003,9 @@ P1_Str <- ggplot(subset(STRdf, strpPart_Unity == 1), aes(x = factor(TBI_Non, lev
   scale_color_manual(values=c( "#D55E00", "#56B4E9", "#009E73")) +
   scale_x_discrete(labels=c("Control","mTBI","PPCS")) +
   theme_classic() + theme(legend.position="none")+
-  xlab(" ") + ylab("Part one latency (ms)")+
-  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
+  xlab(" ") + ylab("Part one latency (ms)")+ 
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") + theme(text = element_text(size = 12)) +
+
 
 
 
@@ -1019,7 +1021,7 @@ stat.test <- compare_means(
  method = "wilcox.test", p.adjust.method = "holm"
 )
 stat.test <- stat.test %>%
- mutate(y.position = c(3000,4000, 5000))
+ mutate(y.position = c(2000, 3000, 4000))
 
 P2_Str <- ggplot(subset(STRdf, strpPart_Unity == 2), aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long")), y =   Saccade_Latency, color =  TBI_Non)) + 
   geom_boxplot(outlier.shape = NA)+ 
@@ -1028,7 +1030,7 @@ P2_Str <- ggplot(subset(STRdf, strpPart_Unity == 2), aes(x = factor(TBI_Non, lev
   scale_x_discrete(labels=c("Control","mTBI","PPCS")) +
   theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("Part two latency (ms)")+
-  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") + theme(text = element_text(size = 12))
 
 StrTimeLatPlots<- ggarrange(P1_Str , P2_Str, TT1_Str, TT2_Str, nrow=2, ncol=2,  labels = c( "A" ,"B", "C", "D"))
 ggsave("StrTimeLatPlots.png", width = 20, height = 20, units = "cm")
@@ -1117,7 +1119,7 @@ B_VOR <- ggplot(VORdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long"
   theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab(my_title)+
   #geom_hline(yintercept=0, linetype="dashed", color="#5f6061")+
-  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}")  + theme(text = element_text(size = 12))
 
 ```
 
@@ -1142,7 +1144,7 @@ H_VOR <- ggplot(VORdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long"
   theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("Horizontal visual angle error (degrees)")+
   geom_hline(yintercept=0, linetype="dashed", color="#5f6061")+
-  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") + ylim(-6, 6)
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") + ylim(-6, 6) + theme(text = element_text(size = 12))
 
 ```
 
@@ -1167,7 +1169,7 @@ V_VOR <- ggplot(VORdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long"
   theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("Vertical visual angle error (degrees)")+
   geom_hline(yintercept=0, linetype="dashed", color="#5f6061")+
-  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}")  + theme(text = element_text(size = 12))
 
 VORPlotsVA <- ggarrange(B_VOR, NULL, H_VOR, V_VOR,  labels = c( "A" , "", "B", "C"))
 ggsave("VORPlotsVA.png", width = 20, height = 20, units = "cm")
@@ -1194,7 +1196,7 @@ G_VOR <- ggplot(VORdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long"
   theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("Gain")+
   geom_hline(yintercept=1, linetype="dashed", color="#5f6061")+
-  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}")  + theme(text = element_text(size = 12))
 
 ```
 
@@ -1218,7 +1220,7 @@ TG_VOR <- ggplot(VORdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long
   theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("Time to maximum gain (ms)")+
   #geom_hline(yintercept=1, linetype="dashed", color="#5f6061")+
-  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}")  + theme(text = element_text(size = 12))
 
 ```
 
@@ -1236,13 +1238,13 @@ stat.test <- stat.test %>%
 
 HS_VOR <- ggplot(VORdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long")), y = Horiz_Saccade_Number, color = TBI_Non)) + 
   geom_boxplot(outlier.shape = NA)+ 
-  geom_jitter(shape=16, position=position_jitter(0.2), alpha=0.4)+
+  geom_jitter(shape=16, width=0.1, height=0, alpha=0.4)+
   scale_color_manual(values=c( "#D55E00", "#56B4E9", "#009E73")) +
   scale_x_discrete(labels=c("Control","mTBI","PPCS")) +
   theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("Number of horizontal saccades")+
   #geom_hline(yintercept=1, linetype="dashed", color="#5f6061")+
-  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") 
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}")  + theme(text = element_text(size = 12))
 
 VORPlotsG <- ggarrange(G_VOR, TG_VOR,  HS_VOR, NULL, labels = c( "A" , "B",  "C", ""))
 ggsave("VORPlotsG.png", width = 20, height = 20, units = "cm")

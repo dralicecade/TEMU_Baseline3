@@ -171,11 +171,14 @@ MTBI_lowHigh <- sort(mTBIPartic$ageYrs)
 PPCS_lowHigh <- sort(PCS_DemPartic$ageYrs)
 
 Tot_Ages <- qpcR:::cbind.na(All_lowHigh, MTBI_lowHigh, PPCS_lowHigh)
-Tot_Ages$diff <- Chiro_lowHigh - Control_lowHigh
+Tot_Ages$diff <- All_lowHigh - MTBI_lowHigh -PPCS_lowHigh
 mean(Tot_Ages$diff)
 sd(Tot_Ages$diff)
 
+age <- prop.test(x=c(21, 9, 12), n = c(55, 20, 40))
+age
 
+view(Tot_Ages)
 #sex balanced?
 Sex <- prop.test(x=c(21, 9, 12), n = c(55, 20, 40))
 Sex
