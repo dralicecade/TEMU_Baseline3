@@ -209,6 +209,8 @@ ggplot(Over_UnderY, aes(PropPosition, fill = Ov_Und)) + geom_density(alpha = 0.2
 PropXUnderTBI <- X_Shoots %>% group_by(TBI_Non) %>%
   dplyr::summarise(PropPos = mean(X_Under), CorrSD = sd(X_Under), Num = n(), CorrSE = CorrSD/115) # Make n number of partic not 
 
+
+
 PropXUnderTBI$TBI_Non <- factor(PropXUnderTBI$TBI_Non, levels = c("Non", "Short", "Long"))
 X_OverPlot <- ggplot(PropXUnderTBI  ) + geom_col(aes(x=TBI_Non, y=PropPos), fill=myCols3, alpha = 0.7) + geom_errorbar(aes(x = TBI_Non, ymin = PropPos-CorrSE*1.96, ymax = PropPos + CorrSE*1.96), width=.2, position=position_dodge(.9)) + 
   labs(x = "", y = "Proportion horizontal hndershoots") + geom_hline(aes(slope = 0, yintercept = 0.5), linetype="dashed" ) +
@@ -228,8 +230,14 @@ PropXUnderTots <-PropXUnderTots %>% add_row(TBI_Non="Long", Tot= (PropXUnderTots
 PropXUnderTots <-PropXUnderTots %>% add_row(TBI_Non="Non", Tot= (PropXUnderTots$Num[2] - PropXUnderTots$Tot[2]),PropPos=(PropXUnderTots$Num[2]-PropXUnderTots$Tot[2]) / PropXUnderTots$Num[2], CorrSD=NA, Num=PropXUnderTots$Num[2], CorrSE=NA)
 PropXUnderTots <-PropXUnderTots %>% add_row(TBI_Non="Short", Tot= (PropXUnderTots$Num[3] - PropXUnderTots$Tot[3]),PropPos=(PropXUnderTots$Num[3]-PropXUnderTots$Tot[3]) / PropXUnderTots$Num[3], CorrSD=NA, Num=PropXUnderTots$Num[3], CorrSE=NA)
 
+# non = blue
+#short = green
+#long = red
+
+myCols3LightDarkMIX <- c("#D55E00","#56B4E9", "#009E73",     "#e3b591", "#abd5ed" ,"#b4dbd1")
+
 PropXUnderTots$TBI_Non <- factor(PropXUnderTots$TBI_Non, levels = c("Non", "Short", "Long"))
-X_OverPlot <- ggplot(PropXUnderTots) + geom_col(aes(x=TBI_Non, y=(PropPos*100)), fill=myCols3LightDark, alpha = 0.7) + geom_errorbar(aes(x = TBI_Non, ymin = (lwr.ci*100), ymax = (upr.ci*100)), width=.2,
+X_OverPlot <- ggplot(PropXUnderTots) + geom_col(aes(x=TBI_Non, y=(PropPos*100)), fill=myCols3LightDarkMIX, alpha = 0.7) + geom_errorbar(aes(x = TBI_Non, ymin = (lwr.ci*100), ymax = (upr.ci*100)), width=.2,
                  position=position_dodge(.9))  + labs(x = " ", y = "Percentage horizontal undershoots") + 
   geom_hline(aes(slope = 0, yintercept = 50), linetype="dashed" ) + theme_classic() + ylim(0,100)+
   scale_x_discrete(labels=c("Non" = "Control", "Short" = "mTBI", "Long"= "PPCS")) + theme(text = element_text(size = 16)) 
@@ -253,7 +261,7 @@ PropYUnderTots <-PropYUnderTots %>% add_row(TBI_Non="Non", Tot= (PropYUnderTots$
 PropYUnderTots <-PropYUnderTots %>% add_row(TBI_Non="Short", Tot= (PropYUnderTots$Num[3] - PropYUnderTots$Tot[3]),PropPos=(PropYUnderTots$Num[3]-PropYUnderTots$Tot[3]) / PropYUnderTots$Num[3], CorrSD=NA, Num=PropYUnderTots$Num[3], CorrSE=NA)
 
 PropYUnderTots$TBI_Non <- factor(PropYUnderTots$TBI_Non, levels = c("Non", "Short", "Long"))
-Y_OverPlot <- ggplot(PropYUnderTots) + geom_col(aes(x=TBI_Non, y=(PropPos*100)), fill=myCols3LightDark, alpha = 0.7) + geom_errorbar(aes(x = TBI_Non, ymin = (lwr.ci*100), ymax = (upr.ci*100)), width=.2,
+Y_OverPlot <- ggplot(PropYUnderTots) + geom_col(aes(x=TBI_Non, y=(PropPos*100)), fill=myCols3LightDarkMIX, alpha = 0.7) + geom_errorbar(aes(x = TBI_Non, ymin = (lwr.ci*100), ymax = (upr.ci*100)), width=.2,
                  position=position_dodge(.9))  + labs(x = " ", y = "Percentage vertical undershoots") + 
   geom_hline(aes(slope = 0, yintercept = 50), linetype="dashed" ) + theme_classic() + ylim(0,100)+
   scale_x_discrete(labels=c("Non" = "Control", "Short" = "mTBI", "Long"= "PPCS"))+ theme(text = element_text(size = 16)) 
@@ -603,7 +611,64 @@ N_Sacs <- ggplot(PURdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long
   #geom_hline(yintercept=1, linetype="dashed", color="#5f6061")+
   stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") + theme(text = element_text(size = 12))
 
-PurPlotsGain <- ggarrange(T_Gain , H_Gain, V_Gain, N_Sacs, ncol=2, nrow=2, labels = c( "A" ,"B", "C", "D"))
+
+
+
+Control  <- subset(PURdf, TBI_Non %like% "Non")
+Control  <- Control$Num_Sacs
+Control <- as.data.frame(table(Control))
+Control$Non <- (Control$Freq / sum(Control$Freq))*100
+mTBI <- subset(PURdf,  TBI_Non %like% "Short")
+mTBI <-  mTBI$Num_Sacs
+mTBI <- as.data.frame(table(mTBI))
+mTBI$Short <- (mTBI$Freq / sum(mTBI$Freq))*100  
+PPCS  <- subset(PURdf,  TBI_Non %like% "Long")
+PPCS  <- PPCS$Num_Sacs
+PPCS <- as.data.frame(table(PPCS))
+PPCS$Long <- (PPCS$Freq / sum(PPCS$Freq))*100 
+
+
+Outcome_Change <- qpcR:::cbind.na(Control, mTBI, PPCS)
+Outcome_Change <- as.data.frame(Outcome_Change)
+Outcome_ChangeG <- Outcome_Change %>% gather(State, NumberS, 3,6,9)
+Outcome_ChangeG$NumberS[is.na(Outcome_ChangeG$NumberS)]<-0
+#Outcome_ChangeG$NumberS <- round(Outcome_ChangeG$NumberS, 0)
+Outcome_ChangeG$Count <- seq(0,8, by=1)
+
+myColsLightDark <- c("#D55E00","#f2b483", "#56B4E9", "#aad8f2")
+
+myColsLightDark <- c( 'darkorange','#f2b483', 'dodgerblue', '#aad8f2')
+
+myCols6 <- c(  'dodgerblue','#aad8f2', '#64d40b','#b8f587' ,'#f2b483','darkorange')
+
+myCols9 <- c("red", '#9d2ef2', 'blue', 'dodgerblue','#aad8f2', '#64d40b','#b8f587' ,'#f2b483','darkorange')
+
+Outcome_ChangeG$TBI_Non <- as.factor(Outcome_ChangeG$State)
+Outcome_ChangeG$Count <- as.factor(Outcome_ChangeG$Count)
+
+Outcome_ChangeG <- Outcome_ChangeG[c(8,9, 10)]
+
+
+stat.test$Count <- as.factor(0)
+stat.test <- stat.test %>%
+ mutate(y.position = c(112,124, 136))
+Pur_Stacked <- ggplot(Outcome_ChangeG , aes( y=NumberS, x=TBI_Non,fill=fct_rev(Count))) + 
+    geom_bar( stat="identity")+
+  theme_classic() + xlab("") + ylab("Percentage") + guides(fill = guide_legend(reverse = T)) + 
+  theme( legend.position = "right") +
+  labs(fill = "Number of\nsaccades")  +   scale_fill_manual( values = myCols9) + 
+     theme(axis.title=element_text(size=12)) + 
+  scale_y_continuous(breaks=seq(0,100,20))+
+  scale_x_discrete(limits=c("Non","Short" , "Long" ), labels=c("Non" = "Control", "Short" = "mTBI","Long" = "PPCS" )) + stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") + theme(text = element_text(size = 12))
+  
+  
+
+
+
+
+
+
+PurPlotsGain <- ggarrange(T_Gain , H_Gain, V_Gain, Pur_Stacked, ncol=2, nrow=2, labels = c( "A" ,"B", "C", "D"))
 ggsave("PurPlotsGain.png", width = 25, height = 20, units = "cm")
 ```
 
@@ -665,7 +730,8 @@ stat.test <- stat.test %>%
  mutate(y.position = c(92, 100, 110))
 
 PT_Sac <- ggbarplot(diffs, x = "TBI_Non", y = "Percentage", 
-          color = "TBI_Non",fill = "TBI_Non", palette = myCols3,  alpha = 0.7,  #add = "jitter",
+          color = "white",alpha = 0.7, fill = "TBI_Non", palette = myCols3,  alpha = 0.7,  #add = "jitter",
+          width=0.9,
           order = c("Non", "Short", "Long"),
           ylab = "Percentage correct pro-saccade trials", xlab = " ") + 
           scale_x_discrete(labels=c("Control","mTBI","PPCS")) +
@@ -695,7 +761,8 @@ stat.test <- stat.test %>%
  mutate(y.position = c(92, 100, 110))
 
 AT_Sac <- ggbarplot(diffs, x = "TBI_Non", y = "Percentage", 
-          color = "TBI_Non", fill = "TBI_Non", palette = myCols3, alpha = 0.7,
+          color = "white", fill = "TBI_Non", palette = myCols3, alpha = 0.7,
+          width=0.9,
           order = c("Non", "Short", "Long"),
           ylab = "Percentage correct anti-saccade trials", xlab = " ") + 
           scale_x_discrete(labels=c("Control","mTBI","PPCS")) +
@@ -874,7 +941,8 @@ stat.test <- stat.test %>%
  mutate(y.position = c( 100, 110, 120))
 
 P1_Sac <- ggbarplot(diffs, x = "TBI_Non", y = "Percentage", 
-          color = "TBI_Non",fill = "TBI_Non", palette = myCols3, alpha=0.7,  #add = "jitter",
+          color = "white", fill = "TBI_Non", palette = myCols3, alpha = 0.7,
+          width=0.9,
           order = c("Non", "Short", "Long"),
           ylab = "Percentage correct part one trials", xlab = " ") + 
           scale_x_discrete(labels=c("Control","mTBI","PPCS")) +
@@ -904,7 +972,8 @@ stat.test <- stat.test %>%
  mutate(y.position = c(100, 110, 120))
 
 P2_Sac <- ggbarplot(diffs, x = "TBI_Non", y = "Percentage", 
-          color = "TBI_Non", fill = "TBI_Non", palette = myCols3, alpha=0.7,
+          color = "white", fill = "TBI_Non", palette = myCols3, alpha = 0.7,
+          width=0.9,
           order = c("Non", "Short", "Long"),
           ylab = "Percentage correct part two trials", xlab = " ") + 
           scale_x_discrete(labels=c("Control","mTBI","PPCS")) +
@@ -995,16 +1064,16 @@ stat.test <- compare_means(
  method = "wilcox.test", p.adjust.method = "holm"
 )
 stat.test <- stat.test %>%
- mutate(y.position = c(3000, 4000, 5000))
+ mutate(y.position = c(log10(2000), log10(3000), log10(5000)))
 
-P1_Str <- ggplot(subset(STRdf, strpPart_Unity == 1), aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long")), y =   Saccade_Latency, color =  TBI_Non)) + 
+P1_Str <- ggplot(subset(STRdf, strpPart_Unity == 1), aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long")), y =   log10(Saccade_Latency), color =  TBI_Non)) + 
   geom_boxplot(outlier.shape = NA)+ 
   geom_jitter(shape=16, position=position_jitter(0.2), alpha=0.4)+
   scale_color_manual(values=c( "#D55E00", "#56B4E9", "#009E73")) +
   scale_x_discrete(labels=c("Control","mTBI","PPCS")) +
   theme_classic() + theme(legend.position="none")+
-  xlab(" ") + ylab("Part one latency (ms)")+ 
-  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") + theme(text = element_text(size = 12)) +
+  xlab(" ") + ylab("Part one latency log (ms)")+ 
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") + theme(text = element_text(size = 12)) 
 
 
 
@@ -1021,15 +1090,15 @@ stat.test <- compare_means(
  method = "wilcox.test", p.adjust.method = "holm"
 )
 stat.test <- stat.test %>%
- mutate(y.position = c(2000, 3000, 4000))
+ mutate(y.position = c(log10(2000), log10(3000), log10(5000)))
 
-P2_Str <- ggplot(subset(STRdf, strpPart_Unity == 2), aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long")), y =   Saccade_Latency, color =  TBI_Non)) + 
+P2_Str <- ggplot(subset(STRdf, strpPart_Unity == 2), aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long")), y =   log10(Saccade_Latency), color =  TBI_Non)) + 
   geom_boxplot(outlier.shape = NA)+ 
   geom_jitter(shape=16, position=position_jitter(0.2), alpha=0.4)+
   scale_color_manual(values=c( "#D55E00", "#56B4E9", "#009E73")) +
   scale_x_discrete(labels=c("Control","mTBI","PPCS")) +
   theme_classic() + theme(legend.position="none")+
-  xlab(" ") + ylab("Part two latency (ms)")+
+  xlab(" ") + ylab("Part two latency log (ms)")+
   stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") + theme(text = element_text(size = 12))
 
 StrTimeLatPlots<- ggarrange(P1_Str , P2_Str, TT1_Str, TT2_Str, nrow=2, ncol=2,  labels = c( "A" ,"B", "C", "D"))
@@ -1245,6 +1314,57 @@ HS_VOR <- ggplot(VORdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long
   xlab(" ") + ylab("Number of horizontal saccades")+
   #geom_hline(yintercept=1, linetype="dashed", color="#5f6061")+
   stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}")  + theme(text = element_text(size = 12))
+
+
+
+Control  <- subset(VORdf, TBI_Non %like% "Non")
+Control  <- Control$Num_Sacs
+Control <- as.data.frame(table(Control))
+Control$Non <- (Control$Freq / sum(Control$Freq))*100
+mTBI <- subset(VORdf,  TBI_Non %like% "Short")
+mTBI <-  mTBI$Num_Sacs
+mTBI <- as.data.frame(table(mTBI))
+mTBI$Short <- (mTBI$Freq / sum(mTBI$Freq))*100  
+PPCS  <- subset(VORdf,  TBI_Non %like% "Long")
+PPCS  <- PPCS$Num_Sacs
+PPCS <- as.data.frame(table(PPCS))
+PPCS$Long <- (PPCS$Freq / sum(PPCS$Freq))*100 
+
+
+Outcome_Change <- qpcR:::cbind.na(Control, mTBI, PPCS)
+Outcome_Change <- as.data.frame(Outcome_Change)
+Outcome_ChangeG <- Outcome_Change %>% gather(State, NumberS, 3,6,9)
+Outcome_ChangeG$NumberS[is.na(Outcome_ChangeG$NumberS)]<-0
+#Outcome_ChangeG$NumberS <- round(Outcome_ChangeG$NumberS, 0)
+Outcome_ChangeG$Count <- seq(0,8, by=1)
+
+myColsLightDark <- c("#D55E00","#f2b483", "#56B4E9", "#aad8f2")
+
+myColsLightDark <- c( 'darkorange','#f2b483', 'dodgerblue', '#aad8f2')
+
+myCols6 <- c(  'dodgerblue','#aad8f2', '#64d40b','#b8f587' ,'#f2b483','darkorange')
+
+myCols9 <- c("red", '#9d2ef2', 'blue', 'dodgerblue','#aad8f2', '#64d40b','#b8f587' ,'#f2b483','darkorange')
+
+Outcome_ChangeG$TBI_Non <- as.factor(Outcome_ChangeG$State)
+Outcome_ChangeG$Count <- as.factor(Outcome_ChangeG$Count)
+
+Outcome_ChangeG <- Outcome_ChangeG[c(8,9, 10)]
+
+
+stat.test$Count <- as.factor(0)
+stat.test <- stat.test %>%
+ mutate(y.position = c(112,124, 136))
+Pur_Stacked <- ggplot(Outcome_ChangeG , aes( y=NumberS, x=TBI_Non,fill=fct_rev(Count))) + 
+    geom_bar( stat="identity")+
+  theme_classic() + xlab("") + ylab("Percentage") + guides(fill = guide_legend(reverse = T)) + 
+  theme( legend.position = "right") +
+  labs(fill = "Number of\nsaccades")  +   scale_fill_manual( values = myCols9) + 
+     theme(axis.title=element_text(size=12)) + 
+  scale_y_continuous(breaks=seq(0,100,20))+
+  scale_x_discrete(limits=c("Non","Short" , "Long" ), labels=c("Non" = "Control", "Short" = "mTBI","Long" = "PPCS" )) + stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") + theme(text = element_text(size = 12))
+  
+  
 
 VORPlotsG <- ggarrange(G_VOR, TG_VOR,  HS_VOR, NULL, labels = c( "A" , "B",  "C", ""))
 ggsave("VORPlotsG.png", width = 20, height = 20, units = "cm")
