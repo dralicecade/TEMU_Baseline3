@@ -1318,15 +1318,15 @@ HS_VOR <- ggplot(VORdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long
 
 
 Control  <- subset(VORdf, TBI_Non %like% "Non")
-Control  <- Control$Num_Sacs
+Control  <- Control$Horiz_Saccade_Number
 Control <- as.data.frame(table(Control))
 Control$Non <- (Control$Freq / sum(Control$Freq))*100
 mTBI <- subset(VORdf,  TBI_Non %like% "Short")
-mTBI <-  mTBI$Num_Sacs
+mTBI <-  mTBI$Horiz_Saccade_Number
 mTBI <- as.data.frame(table(mTBI))
 mTBI$Short <- (mTBI$Freq / sum(mTBI$Freq))*100  
 PPCS  <- subset(VORdf,  TBI_Non %like% "Long")
-PPCS  <- PPCS$Num_Sacs
+PPCS  <- PPCS$Horiz_Saccade_Number
 PPCS <- as.data.frame(table(PPCS))
 PPCS$Long <- (PPCS$Freq / sum(PPCS$Freq))*100 
 
@@ -1336,7 +1336,7 @@ Outcome_Change <- as.data.frame(Outcome_Change)
 Outcome_ChangeG <- Outcome_Change %>% gather(State, NumberS, 3,6,9)
 Outcome_ChangeG$NumberS[is.na(Outcome_ChangeG$NumberS)]<-0
 #Outcome_ChangeG$NumberS <- round(Outcome_ChangeG$NumberS, 0)
-Outcome_ChangeG$Count <- seq(0,8, by=1)
+Outcome_ChangeG$Count <- seq(0,5, by=1)
 
 myColsLightDark <- c("#D55E00","#f2b483", "#56B4E9", "#aad8f2")
 
@@ -1359,14 +1359,14 @@ Pur_Stacked <- ggplot(Outcome_ChangeG , aes( y=NumberS, x=TBI_Non,fill=fct_rev(C
     geom_bar( stat="identity")+
   theme_classic() + xlab("") + ylab("Percentage") + guides(fill = guide_legend(reverse = T)) + 
   theme( legend.position = "right") +
-  labs(fill = "Number of\nsaccades")  +   scale_fill_manual( values = myCols9) + 
+  labs(fill = "Number of\nsaccades")  +   scale_fill_manual( values = myCols6) + 
      theme(axis.title=element_text(size=12)) + 
   scale_y_continuous(breaks=seq(0,100,20))+
   scale_x_discrete(limits=c("Non","Short" , "Long" ), labels=c("Non" = "Control", "Short" = "mTBI","Long" = "PPCS" )) + stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") + theme(text = element_text(size = 12))
   
   
 
-VORPlotsG <- ggarrange(G_VOR, TG_VOR,  HS_VOR, NULL, labels = c( "A" , "B",  "C", ""))
+VORPlotsG <- ggarrange(G_VOR, TG_VOR,  Pur_Stacked, NULL, labels = c( "A" , "B",  "C", ""))
 ggsave("VORPlotsG.png", width = 20, height = 20, units = "cm")
 
 ```
