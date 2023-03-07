@@ -133,7 +133,8 @@ H_Ego <- ggplot(EGOdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long"
   theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("Horizontal error (mm)")+
   geom_hline(yintercept=0, linetype="dashed", color="#5f6061")+
-  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") + theme(text = element_text(size = 16))   
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}", size = 5) + theme(text = element_text(size = 18)) + 
+     theme(axis.title=element_text(size=16)) 
 
 ```
 
@@ -161,7 +162,10 @@ V_Ego <- ggplot(EGOdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long"
   theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("Vertical error (mm)")+
   geom_hline(yintercept=0, linetype="dashed", color="#5f6061")+
-  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") + theme(text = element_text(size = 16))   
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}", size = 5) + theme(text = element_text(size = 18)) + 
+     theme(axis.title=element_text(size=16))  
+ggsave("V_Ego.png", width = 10, height = 11, units = "cm")
+
 
 
 EgoPlots <- ggarrange(H_Ego, V_Ego, labels = c("A", "B") ) 
@@ -214,7 +218,7 @@ PropXUnderTBI <- X_Shoots %>% group_by(TBI_Non) %>%
 PropXUnderTBI$TBI_Non <- factor(PropXUnderTBI$TBI_Non, levels = c("Non", "Short", "Long"))
 X_OverPlot <- ggplot(PropXUnderTBI  ) + geom_col(aes(x=TBI_Non, y=PropPos), fill=myCols3, alpha = 0.7) + geom_errorbar(aes(x = TBI_Non, ymin = PropPos-CorrSE*1.96, ymax = PropPos + CorrSE*1.96), width=.2, position=position_dodge(.9)) + 
   labs(x = "", y = "Proportion horizontal hndershoots") + geom_hline(aes(slope = 0, yintercept = 0.5), linetype="dashed" ) +
-  theme_minimal() + scale_x_discrete(labels=c("Non" = "Control", "Short" = "mTBI", "Long"= "PPCS")) + ylim(0,1) + theme(text = element_text(size = 16)) 
+  theme_minimal() + scale_x_discrete(labels=c("Non" = "Control", "Short" = "mTBI", "Long"= "PPCS")) + ylim(0,1) + theme(text = element_text(size = 20)) 
 
 
 # Diff Bw TBI and non for X undershoots?
@@ -240,7 +244,7 @@ PropXUnderTots$TBI_Non <- factor(PropXUnderTots$TBI_Non, levels = c("Non", "Shor
 X_OverPlot <- ggplot(PropXUnderTots) + geom_col(aes(x=TBI_Non, y=(PropPos*100)), fill=myCols3LightDarkMIX, alpha = 0.7) + geom_errorbar(aes(x = TBI_Non, ymin = (lwr.ci*100), ymax = (upr.ci*100)), width=.2,
                  position=position_dodge(.9))  + labs(x = " ", y = "Percentage horizontal undershoots") + 
   geom_hline(aes(slope = 0, yintercept = 50), linetype="dashed" ) + theme_classic() + ylim(0,100)+
-  scale_x_discrete(labels=c("Non" = "Control", "Short" = "mTBI", "Long"= "PPCS")) + theme(text = element_text(size = 16)) 
+  scale_x_discrete(labels=c("Non" = "Control", "Short" = "mTBI", "Long"= "PPCS")) + theme(text = element_text(size = 20)) 
 
 
 # differences bw groups
@@ -264,7 +268,7 @@ PropYUnderTots$TBI_Non <- factor(PropYUnderTots$TBI_Non, levels = c("Non", "Shor
 Y_OverPlot <- ggplot(PropYUnderTots) + geom_col(aes(x=TBI_Non, y=(PropPos*100)), fill=myCols3LightDarkMIX, alpha = 0.7) + geom_errorbar(aes(x = TBI_Non, ymin = (lwr.ci*100), ymax = (upr.ci*100)), width=.2,
                  position=position_dodge(.9))  + labs(x = " ", y = "Percentage vertical undershoots") + 
   geom_hline(aes(slope = 0, yintercept = 50), linetype="dashed" ) + theme_classic() + ylim(0,100)+
-  scale_x_discrete(labels=c("Non" = "Control", "Short" = "mTBI", "Long"= "PPCS"))+ theme(text = element_text(size = 16)) 
+  scale_x_discrete(labels=c("Non" = "Control", "Short" = "mTBI", "Long"= "PPCS"))+ theme(text = element_text(size = 20)) 
 
 
 
@@ -332,7 +336,8 @@ H_Fix <- ggplot(FIXdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long"
   theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("Horizontal visual angle error (degrees)")+
   geom_hline(yintercept=0, linetype="dashed", color="#5f6061")+
-  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") + theme(text = element_text(size = 16))
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}", size = 5) + theme(text = element_text(size = 18)) + 
+     theme(axis.title=element_text(size=16))  
 ```
 ```{r FIXModel_Y, echo=FALSE, message=FALSE, warning=FALSE }
 # difference bw Pre groups
@@ -356,8 +361,10 @@ V_Fix <- ggplot(FIXdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long"
   theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("Vertical Visual Angle Error (degrees)")+
   geom_hline(yintercept=0, linetype="dashed", color="#5f6061")+
-  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") + theme(text = element_text(size = 16))
-
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}", size = 5) + theme(text = element_text(size = 18)) + 
+     theme(axis.title=element_text(size=16))  
+FixXYPlots <- ggarrange(  H_Fix, V_Fix, labels = c( "A" ,"B"))
+ggsave("FixPlots.png", width = 20, height = 13, units = "cm")
 ```
 
 ```{r FIX_BCEA, echo=FALSE, message=FALSE, warning=FALSE }
@@ -384,8 +391,8 @@ B_Fix <- ggplot(FIXdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long"
   theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab(my_title)+
   #geom_hline(yintercept=0, linetype="dashed", color="#5f6061")+
-  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") + theme(text = element_text(size = 16))
-
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}", size = 5) + theme(text = element_text(size = 18)) + 
+     theme(axis.title=element_text(size=16))  
 
 FixPlots <- ggarrange(B_Fix, NULL,   H_Fix, V_Fix, labels = c( "A" ,"", "B", "C"))
 ggsave("FixPlots.png", width = 30, height = 25, units = "cm")
@@ -470,7 +477,8 @@ T_Pur <- ggplot(PURdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long"
   theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("Total visual angle error (degrees)")+
   geom_hline(yintercept=0, linetype="dashed", color="#5f6061")+
-  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}")  + theme(text = element_text(size = 12))
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}", size = 4) + theme(text = element_text(size = 18)) + 
+     theme(axis.title=element_text(size=14))  
 
 ```
 
@@ -492,8 +500,8 @@ H_Pur <- ggplot(PURdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long"
   theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("Horizontal visual angle error (degrees)")+
   geom_hline(yintercept=0, linetype="dashed", color="#5f6061")+
-  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}")  + theme(text = element_text(size = 12))
-
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}", size = 4) + theme(text = element_text(size = 18)) + 
+     theme(axis.title=element_text(size=14)) 
 ```
 
 ```{r V_Pur, echo=FALSE, message=FALSE, warning=FALSE }
@@ -515,10 +523,10 @@ V_Pur <- ggplot(PURdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long"
   theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("Vertical visual angle error (degrees)")+
   geom_hline(yintercept=0, linetype="dashed", color="#5f6061")+
-  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") + theme(text = element_text(size = 12))
-
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}", size = 4) + theme(text = element_text(size = 18)) + 
+     theme(axis.title=element_text(size=14)) 
 PurPlots <- ggarrange(T_Pur, NULL,   H_Pur, V_Pur, labels = c( "A" ,"", "B", "C"))
-ggsave("PurPlots.png", width = 22, height = 20, units = "cm")
+ggsave("PurPlots.png", width = 22, height = 22, units = "cm")
 
 ```
 
@@ -540,8 +548,11 @@ T_Gain <- ggplot(PURdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long
   theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("Total gain")+
   geom_hline(yintercept=1, linetype="dashed", color="#5f6061")+
-  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") + theme(text = element_text(size = 12))
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}", size = 4) + theme(text = element_text(size = 18)) + 
+     theme(axis.title=element_text(size=14)) 
 
+PurPlots4 <- ggarrange(T_Pur,  H_Pur, V_Pur,T_Gain, labels = c( "A" , "B", "C", "D"))
+ggsave("PurPlots4.png", width = 22, height = 22, units = "cm")
 ```
 
 ```{r H_Gain, echo=FALSE, message=FALSE, warning=FALSE }
@@ -563,7 +574,8 @@ H_Gain <- ggplot(PURdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long
   theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("Horizontal gain")+
   geom_hline(yintercept=1, linetype="dashed", color="#5f6061")+
-  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") + theme(text = element_text(size = 12))
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}", size = 4) + theme(text = element_text(size = 18)) + 
+     theme(axis.title=element_text(size=14)) 
 
 ```
 
@@ -586,7 +598,8 @@ V_Gain <- ggplot(PURdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long
   theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("Vertical gain")+
   geom_hline(yintercept=1, linetype="dashed", color="#5f6061")+
-  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") + theme(text = element_text(size = 12))
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}", size = 4) + theme(text = element_text(size = 18)) + 
+     theme(axis.title=element_text(size=14)) 
 
 ```
 
@@ -609,7 +622,8 @@ N_Sacs <- ggplot(PURdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long
   theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("Number of saccades")+
   #geom_hline(yintercept=1, linetype="dashed", color="#5f6061")+
-  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") + theme(text = element_text(size = 12))
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}", size = 4) + theme(text = element_text(size = 18)) + 
+     theme(axis.title=element_text(size=14)) 
 
 
 
@@ -659,7 +673,8 @@ Pur_Stacked <- ggplot(Outcome_ChangeG , aes( y=NumberS, x=TBI_Non,fill=fct_rev(C
   labs(fill = "Number of\nsaccades")  +   scale_fill_manual( values = myCols9) + 
      theme(axis.title=element_text(size=12)) + 
   scale_y_continuous(breaks=seq(0,100,20))+
-  scale_x_discrete(limits=c("Non","Short" , "Long" ), labels=c("Non" = "Control", "Short" = "mTBI","Long" = "PPCS" )) + stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") + theme(text = element_text(size = 12))
+  scale_x_discrete(limits=c("Non","Short" , "Long" ), labels=c("Non" = "Control", "Short" = "mTBI","Long" = "PPCS" )) + stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}", size = 4) + theme(text = element_text(size = 16)) + 
+     theme(axis.title=element_text(size=14)) + theme(legend.title = element_text(size=12)) 
   
   
 
@@ -669,7 +684,7 @@ Pur_Stacked <- ggplot(Outcome_ChangeG , aes( y=NumberS, x=TBI_Non,fill=fct_rev(C
 
 
 PurPlotsGain <- ggarrange(T_Gain , H_Gain, V_Gain, Pur_Stacked, ncol=2, nrow=2, labels = c( "A" ,"B", "C", "D"))
-ggsave("PurPlotsGain.png", width = 25, height = 20, units = "cm")
+ggsave("PurPlotsGain.png", width = 25, height = 22, units = "cm")
 ```
 
 ## Saccades
@@ -679,23 +694,24 @@ load("Sac_Healthy.Rda")
 load("Sac_ShortTerm.Rda")
 load("Sac_LongTerm.Rda")
 
-#view(Sac_Healthy)
-#view(Sac_ShortTerm)
-#view(Sac_LongTerm)
+view(Sac_Healthy)
+view(Sac_ShortTerm)
+view(Sac_LongTerm)
 
 Sac_Healthy$ID <- paste(Sac_Healthy$ID, 1, sep = "_")
-colnames(Sac_Healthy)[colnames(Sac_Healthy) == 'Test_Corr' ] <- 'TargType_Unity'
-Sac_Healthy <- Sac_Healthy[-c(5,6,7)]
+colnames(Sac_Healthy)[colnames(Sac_Healthy) == 'Test_Corr' ] <- 'Test_Corr_R'
+Sac_Healthy <- Sac_Healthy[-c(4,5,6,9)]
 Sac_ShortTerm$ID <- paste(Sac_ShortTerm$ID, 2, sep = "_")
+Sac_ShortTerm <- Sac_ShortTerm[-c(2,4)]
 Sac_LongTerm$ID <- paste(Sac_LongTerm$ID, 3, sep = "_")
-Sac_LongTerm <- Sac_LongTerm[-c(6)]
+Sac_LongTerm <- Sac_LongTerm[-c(2,4,6)]
 SACdf <- rbind(Sac_Healthy, Sac_ShortTerm, Sac_LongTerm)
 save(SACdf,file="SACdf.Rda")
 
 
-leveneTest(Test_Corr_R ~ Pre_Post,       SACdf)
-leveneTest(Saccade_Latency ~ Pre_Post,   SACdf) 
-leveneTest(Saccade_Vel_Deg_s ~ Pre_Post, SACdf)
+#leveneTest(Test_Corr_R ~ Pre_Post,       SACdf)
+#leveneTest(Saccade_Latency ~ Pre_Post,   SACdf) 
+#leveneTest(Saccade_Vel_Deg_s ~ Pre_Post, SACdf)
 
 
 shapiro.test(SACdf$Test_Corr_R)
@@ -703,7 +719,7 @@ shapiro.test(SACdf$Saccade_Latency)
 shapiro.test(SACdf$Saccade_Vel_Deg_s)
 
 
-colNames <- c("ID","Trial Number", "Target Type" ,"Number Trials Correct", "Saccade Latency (s)", "Saccade Velocity (deg/s)", "Pre_Post", "TBI_Non")
+colNames <- c("ID", "Target Type" ,"Number Trials Correct", "Saccade Latency (s)", "Saccade Velocity (deg/s)", "TBI_Non")
 testTitle <- "Summary Data for Saccades"
 source("GetSummaryTables.R")
 GetSummaryTablesCIs(SACdf, colNames, testTitle) 
@@ -737,7 +753,8 @@ PT_Sac <- ggbarplot(diffs, x = "TBI_Non", y = "Percentage",
           scale_x_discrete(labels=c("Control","mTBI","PPCS")) +
   geom_errorbar(aes(x= TBI_Non, ymin= (lwr.ci*100), ymax = (upr.ci*100)), width=.2, position=position_dodge(.9)) +
           theme(legend.position = "none")+
-    stat_pvalue_manual(stat.test, label = "p.adj") 
+    stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}", size = 4) + theme(text = element_text(size = 12)) + 
+     theme(axis.title=element_text(size=12))
    #labs( subtitle = get_test_label(K_test_Pres, detailed = TRUE))
 
 
@@ -769,7 +786,8 @@ AT_Sac <- ggbarplot(diffs, x = "TBI_Non", y = "Percentage",
           geom_errorbar(aes(x= TBI_Non, ymin= (lwr.ci*100), ymax = (upr.ci*100)), width=.2, position=position_dodge(.9)) +
           #geom_hline(yintercept=0, linetype="dashed", color="#5f6061")+
           theme(legend.position = "none")+
-    stat_pvalue_manual(stat.test, label = "p.adj") 
+    stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}", size = 4) + theme(text = element_text(size = 12)) + 
+     theme(axis.title=element_text(size=12)) 
    #labs( subtitle = get_test_label(K_test_Pres, detailed = TRUE))
 
 SacTrialPlots<- ggarrange(PT_Sac , AT_Sac,  labels = c( "A" ,"B"))
@@ -800,7 +818,8 @@ PL_Sac <- ggplot(subset(SACdf, TargType_Unity %like% "ProSac"), aes(x = factor(T
   scale_x_discrete(labels=c("Control","mTBI","PPCS")) +
   theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("Pro-saccade latency (ms)")+
-  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") + theme(text = element_text(size = 12))
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}", size = 4) + theme(text = element_text(size = 16)) + 
+     theme(axis.title=element_text(size=14)) 
 
 ## Anti Sac
 K_test_Pres <-  kruskal_test(Saccade_Latency ~ TBI_Non, data = subset(SACdf, TargType_Unity %like% "AntiSac"))
@@ -821,7 +840,8 @@ AL_Sac <- ggplot(subset(SACdf, TargType_Unity %like% "Anti"), aes(x = factor(TBI
   scale_x_discrete(labels=c("Control","mTBI","PPCS")) +
   theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("Anti-saccade latency (ms)")+
-  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") + theme(text = element_text(size = 12))
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}", size = 4) + theme(text = element_text(size = 16)) + 
+     theme(axis.title=element_text(size=14)) 
 
 ```
 
@@ -847,7 +867,8 @@ PV_Sac <- ggplot(subset(SACdf, TargType_Unity %like% "ProSac"), aes(x = factor(T
   scale_x_discrete(labels=c("Control","mTBI","PPCS")) +
   theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("Pro-saccade velocity (degrees/s)")+
-  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") + theme(text = element_text(size = 12))
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}", size = 4) + theme(text = element_text(size = 16)) + 
+     theme(axis.title=element_text(size=14)) 
 
 
 ## Anti Sac
@@ -870,7 +891,8 @@ AV_Sac <- ggplot(subset(SACdf, TargType_Unity %like% "Anti"), aes(x = factor(TBI
   scale_x_discrete(labels=c("Control","mTBI","PPCS")) +
   theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("Anti-saccade velocity (degrees/s)")+
-  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") + theme(text = element_text(size = 12))
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}", size = 4) + theme(text = element_text(size = 16)) + 
+     theme(axis.title=element_text(size=14)) 
 
 Sac_LV_Plots<- ggarrange(PL_Sac , AL_Sac, PV_Sac , AV_Sac, nrow=2, ncol=2, labels = c( "A" ,"B", "C" ,"D"))
 ggsave("Sac_LV_Plots.png", width = 20, height = 20, units = "cm")
@@ -948,7 +970,8 @@ P1_Sac <- ggbarplot(diffs, x = "TBI_Non", y = "Percentage",
           scale_x_discrete(labels=c("Control","mTBI","PPCS")) +
   geom_errorbar(aes(x= TBI_Non, ymin= (lwr.ci*100), ymax = (upr.ci*100)), width=.2, position=position_dodge(.9)) +
           theme(legend.position = "none")+
-    stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") +
+    stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}", size = 4) + theme(text = element_text(size = 16)) + 
+     theme(axis.title=element_text(size=14)) +
   scale_y_continuous(breaks=c(0, 25, 50, 75, 100))
    #labs( subtitle = get_test_label(K_test_Pres, detailed = TRUE))
 
@@ -980,7 +1003,8 @@ P2_Sac <- ggbarplot(diffs, x = "TBI_Non", y = "Percentage",
           geom_errorbar(aes(x= TBI_Non, ymin=(lwr.ci*100), ymax = (upr.ci*100)), width=.2, position=position_dodge(.9)) +
           #geom_hline(yintercept=0, linetype="dashed", color="#5f6061")+
           theme(legend.position = "none")+
-    stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}")+
+    stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}", size = 4) + theme(text = element_text(size = 16)) + 
+     theme(axis.title=element_text(size=14)) +
   scale_y_continuous(breaks=c(0, 25, 50, 75, 100))
 
 StrTrialPlots<- ggarrange(P1_Sac , P2_Sac,  labels = c( "A" ,"B"))
@@ -1017,7 +1041,8 @@ TT1_Str <- ggplot(P1_tots, aes(x = factor(TBI_Non, levels = c("Non", "Short", "L
   scale_x_discrete(labels=c("Control","mTBI","PPCS")) +
   theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("Part one total test time (s)")+
-  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") + theme(text = element_text(size = 12))
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}", size = 4) + theme(text = element_text(size = 16)) + 
+     theme(axis.title=element_text(size=14)) 
 
 ## P2
 P2 <- subset(STRdf, strpPart_Unity == 2)
@@ -1047,7 +1072,8 @@ TT2_Str <- ggplot(P2_tots, aes(x = factor(TBI_Non, levels = c("Non", "Short", "L
   scale_x_discrete(labels=c("Control","mTBI","PPCS")) +
   theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("Part two total test time (s)")+
-  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") + theme(text = element_text(size = 12))
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}", size = 4) + theme(text = element_text(size = 16)) + 
+     theme(axis.title=element_text(size=14)) 
 
 ```
 
@@ -1073,7 +1099,8 @@ P1_Str <- ggplot(subset(STRdf, strpPart_Unity == 1), aes(x = factor(TBI_Non, lev
   scale_x_discrete(labels=c("Control","mTBI","PPCS")) +
   theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("Part one latency log (ms)")+ 
-  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") + theme(text = element_text(size = 12)) 
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}", size = 4) + theme(text = element_text(size = 16)) + 
+     theme(axis.title=element_text(size=14)) 
 
 
 
@@ -1099,7 +1126,8 @@ P2_Str <- ggplot(subset(STRdf, strpPart_Unity == 2), aes(x = factor(TBI_Non, lev
   scale_x_discrete(labels=c("Control","mTBI","PPCS")) +
   theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("Part two latency log (ms)")+
-  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") + theme(text = element_text(size = 12))
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}", size = 4) + theme(text = element_text(size = 16)) + 
+     theme(axis.title=element_text(size=14)) 
 
 StrTimeLatPlots<- ggarrange(P1_Str , P2_Str, TT1_Str, TT2_Str, nrow=2, ncol=2,  labels = c( "A" ,"B", "C", "D"))
 ggsave("StrTimeLatPlots.png", width = 20, height = 20, units = "cm")
@@ -1188,7 +1216,8 @@ B_VOR <- ggplot(VORdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long"
   theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab(my_title)+
   #geom_hline(yintercept=0, linetype="dashed", color="#5f6061")+
-  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}")  + theme(text = element_text(size = 12))
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}", size = 4) + theme(text = element_text(size = 16)) + 
+     theme(axis.title=element_text(size=14)) 
 
 ```
 
@@ -1213,7 +1242,8 @@ H_VOR <- ggplot(VORdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long"
   theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("Horizontal visual angle error (degrees)")+
   geom_hline(yintercept=0, linetype="dashed", color="#5f6061")+
-  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") + ylim(-6, 6) + theme(text = element_text(size = 12))
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}", size = 4) + theme(text = element_text(size = 16)) + 
+     theme(axis.title=element_text(size=14))  + ylim(-6, 6) 
 
 ```
 
@@ -1238,10 +1268,11 @@ V_VOR <- ggplot(VORdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long"
   theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("Vertical visual angle error (degrees)")+
   geom_hline(yintercept=0, linetype="dashed", color="#5f6061")+
-  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}")  + theme(text = element_text(size = 12))
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}", size = 4) + theme(text = element_text(size = 16)) + 
+     theme(axis.title=element_text(size=14)) 
 
 VORPlotsVA <- ggarrange(B_VOR, NULL, H_VOR, V_VOR,  labels = c( "A" , "", "B", "C"))
-ggsave("VORPlotsVA.png", width = 20, height = 20, units = "cm")
+ggsave("VORPlotsVA.png", width = 20, height = 22, units = "cm")
 
 ```
 
@@ -1265,7 +1296,11 @@ G_VOR <- ggplot(VORdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long"
   theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("Gain")+
   geom_hline(yintercept=1, linetype="dashed", color="#5f6061")+
-  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}")  + theme(text = element_text(size = 12))
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}", size = 4) + theme(text = element_text(size = 16)) + 
+     theme(axis.title=element_text(size=14)) 
+
+VORPlotsBCEAGain <- ggarrange(B_VOR, G_VOR,  labels = c( "A" ,  "B"))
+ggsave("VORPlotsBCEAGain.png", width = 20, height = 13, units = "cm")
 
 ```
 
@@ -1289,7 +1324,8 @@ TG_VOR <- ggplot(VORdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long
   theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("Time to maximum gain (ms)")+
   #geom_hline(yintercept=1, linetype="dashed", color="#5f6061")+
-  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}")  + theme(text = element_text(size = 12))
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}", size = 4) + theme(text = element_text(size = 16)) + 
+     theme(axis.title=element_text(size=14)) 
 
 ```
 
@@ -1313,7 +1349,8 @@ HS_VOR <- ggplot(VORdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long
   theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab("Number of horizontal saccades")+
   #geom_hline(yintercept=1, linetype="dashed", color="#5f6061")+
-  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}")  + theme(text = element_text(size = 12))
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}", size = 4) + theme(text = element_text(size = 16)) + 
+     theme(axis.title=element_text(size=14)) 
 
 
 
@@ -1362,7 +1399,8 @@ Pur_Stacked <- ggplot(Outcome_ChangeG , aes( y=NumberS, x=TBI_Non,fill=fct_rev(C
   labs(fill = "Number of\nsaccades")  +   scale_fill_manual( values = myCols6) + 
      theme(axis.title=element_text(size=12)) + 
   scale_y_continuous(breaks=seq(0,100,20))+
-  scale_x_discrete(limits=c("Non","Short" , "Long" ), labels=c("Non" = "Control", "Short" = "mTBI","Long" = "PPCS" )) + stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}") + theme(text = element_text(size = 12))
+  scale_x_discrete(limits=c("Non","Short" , "Long" ), labels=c("Non" = "Control", "Short" = "mTBI","Long" = "PPCS" )) + stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}", size = 4) + theme(text = element_text(size = 16)) + 
+     theme(axis.title=element_text(size=14)) + theme(legend.title = element_text(size=12))
   
   
 
