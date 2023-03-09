@@ -1141,12 +1141,12 @@ load("VOR_Healthy.Rda")
 load("Vor_ShortTerm.Rda")
 load("VOR_LongTerm.Rda")
 
-#view(VOR_Healthy)
-#view(Vor_ShortTerm)
-#view(VOR_LongTerm)
+view(VOR_Healthy)
+view(Vor_ShortTerm)
+view(VOR_LongTerm)
 
 VOR_Healthy$ID <- paste(VOR_Healthy$ID, 1, sep = "_")
-VOR_Healthy <- VOR_Healthy[-c(7)]
+#VOR_Healthy <- VOR_Healthy[-c(7)]
 Vor_ShortTerm$ID <- paste(Vor_ShortTerm$ID, 2, sep = "_")
 VOR_LongTerm$ID <- paste(VOR_LongTerm$ID, 3, sep = "_")
 
@@ -1286,7 +1286,7 @@ stat.test <- compare_means(
  method = "wilcox.test", p.adjust.method = "holm"
 )
 stat.test <- stat.test %>%
- mutate(y.position = c(1.5,1.65,1.8))
+ mutate(y.position = c(1.02,1.05,1.08))
 
 G_VOR <- ggplot(VORdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long")), y = Gain, color = TBI_Non)) + 
   geom_boxplot(outlier.shape = NA)+ 
@@ -1314,7 +1314,7 @@ stat.test <- compare_means(
  method = "wilcox.test", p.adjust.method = "holm"
 )
 stat.test <- stat.test %>%
- mutate(y.position = c(500, 600, 700))
+ mutate(y.position = c(550, 700, 880))
 
 TG_VOR <- ggplot(VORdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long")), y = Time_Max_Gain, color = TBI_Non)) + 
   geom_boxplot(outlier.shape = NA)+ 

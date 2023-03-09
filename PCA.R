@@ -5,6 +5,12 @@ load("SACdf.Rda")
 load("STRdf.Rda")
 load("VORdf.Rda")
 
+view(EGOdf)
+view(FIXdf)
+view(PURdf)
+view(SACdf)
+view(STRdf)
+view(VORdf)
 
 
 EGOdf <- EGOdf[c(1:4, 8)]
@@ -29,7 +35,7 @@ colnames(PURdf)[colnames(PURdf) == 'Gain_Vert'] <-'PUR.Gain_Vert'
 
 
 proSAC <- subset(SACdf, TargType_Unity %like% "ProSac" )
-proSAC <- proSAC[c(1,2,4:6,8)]
+proSAC <- proSAC[c(1,3:6)]
 colnames(proSAC)[colnames(proSAC) == 'Test_Corr_R'] <- 'ProSac.Test_Corr'
 colnames(proSAC)[colnames(proSAC) == 'Saccade_Latency'] <- 'ProSac.Saccade_Latency'
 colnames(proSAC)[colnames(proSAC) == 'Saccade_Vel_Deg_s'] <- 'ProSac.Saccade_Vel_Deg_s'
@@ -40,7 +46,7 @@ proSAC <- proSAC %>% filter(ID != "MS_3")
 proSAC <- proSAC %>% group_by(ID) %>% mutate(TrialNum = seq(1:14))  
 
 antSAC <- subset(SACdf, TargType_Unity %like% "AntiSac" )
-antSAC <- antSAC[c(1,2,4:6,8)]
+antSAC <- antSAC[c(1,3:6)]
 colnames(antSAC)[colnames(antSAC) == 'Test_Corr_R']       <- 'AntSac.Test_Corr'
 colnames(antSAC)[colnames(antSAC) == 'Saccade_Latency']   <- 'AntSac.Saccade_Latency'
 colnames(antSAC)[colnames(antSAC) == 'Saccade_Vel_Deg_s'] <- 'AntSac.Saccade_Vel_Deg_s'
