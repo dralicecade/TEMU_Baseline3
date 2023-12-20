@@ -48,6 +48,10 @@ myCols2 <- c("#D55E00", "#56B4E9")
 myCols3 <- c("#56B4E9", "#009E73","#D55E00" )
 myCols4 <- c("#D55E00","#009E73", "#56B4E9","#CC79A7")
 
+# Setup variables 
+ordCols <- c("#6C3483","#3498DB","#E67E22")
+CondOrdered <- c("Control", "mTBI", "PPCS")
+
 #blue, green, orange , light blue  light green , light orange
 myCols3LightDark <- c("#56B4E9", "#009E73","#D55E00", "#abd5ed" , "#b4dbd1",   "#e3b591")
 
@@ -356,13 +360,13 @@ stat.test <- stat.test %>%
 V_Fix <- ggplot(FIXdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long")), y =   VVA_Mean_deg, color =  TBI_Non)) + 
   geom_boxplot(outlier.shape = NA)+ 
   geom_jitter(shape=16, position=position_jitter(0.2), alpha=0.4)+
-  scale_color_manual(values=c( "#D55E00", "#56B4E9", "#009E73")) +
+  scale_color_manual(values= ordCols ) +
   scale_x_discrete(labels=c("Control","mTBI","PPCS")) +
   theme_classic() + theme(legend.position="none")+
-  xlab(" ") + ylab("Vertical Visual Angle Error (degrees)")+
+  xlab(" ") + ylab("Fixation vertical offset error")+
   geom_hline(yintercept=0, linetype="dashed", color="#5f6061")+
-  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}", size = 5) + theme(text = element_text(size = 18)) + 
-     theme(axis.title=element_text(size=16))  
+  stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}", size = 4) + theme(text = element_text(size = 18)) + 
+     theme(axis.title=element_text(size=14))  
 FixXYPlots <- ggarrange(  H_Fix, V_Fix, labels = c( "A" ,"B"))
 ggsave("FixPlots.png", width = 20, height = 13, units = "cm")
 ```
@@ -472,10 +476,10 @@ stat.test <- stat.test %>%
 T_Pur <- ggplot(PURdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long")), y = TotalVA_Error_Mean_deg, color = TBI_Non)) + 
   geom_boxplot(outlier.shape = NA)+ 
   geom_jitter(shape=16, position=position_jitter(0.2), alpha=0.4)+
-  scale_color_manual(values=c( "#D55E00", "#56B4E9", "#009E73")) +
+  scale_color_manual(values=ordCols) +
   scale_x_discrete(labels=c("Control","mTBI","PPCS")) +
   theme_classic() + theme(legend.position="none")+
-  xlab(" ") + ylab("Total visual angle error (degrees)")+
+  xlab(" ") + ylab("Pursuit total offset error")+
   geom_hline(yintercept=0, linetype="dashed", color="#5f6061")+
   stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}", size = 4) + theme(text = element_text(size = 18)) + 
      theme(axis.title=element_text(size=14))  
@@ -593,10 +597,10 @@ stat.test <- stat.test %>%
 V_Gain <- ggplot(PURdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long")), y = Gain_Vert, color = TBI_Non)) + 
   geom_boxplot(outlier.shape = NA)+ 
   geom_jitter(shape=16, position=position_jitter(0.2), alpha=0.4)+
-  scale_color_manual(values=c( "#D55E00", "#56B4E9", "#009E73")) +
+  scale_color_manual(values=ordCols) +
   scale_x_discrete(labels=c("Control","mTBI","PPCS")) +
   theme_classic() + theme(legend.position="none")+
-  xlab(" ") + ylab("Vertical gain")+
+  xlab(" ") + ylab("Pursuit vertical gain")+
   geom_hline(yintercept=1, linetype="dashed", color="#5f6061")+
   stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}", size = 4) + theme(text = element_text(size = 18)) + 
      theme(axis.title=element_text(size=14)) 
@@ -670,17 +674,13 @@ Pur_Stacked <- ggplot(Outcome_ChangeG , aes( y=NumberS, x=TBI_Non,fill=fct_rev(C
     geom_bar( stat="identity")+
   theme_classic() + xlab("") + ylab("Percentage") + guides(fill = guide_legend(reverse = T)) + 
   theme( legend.position = "right") +
-  labs(fill = "Number of\nsaccades")  +   scale_fill_manual( values = myCols9) + 
+  labs(fill = "Number of\npursuit\nsaccades")  +   scale_fill_manual( values = myCols9) + 
      theme(axis.title=element_text(size=12)) + 
   scale_y_continuous(breaks=seq(0,100,20))+
   scale_x_discrete(limits=c("Non","Short" , "Long" ), labels=c("Non" = "Control", "Short" = "mTBI","Long" = "PPCS" )) + stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}", size = 4) + theme(text = element_text(size = 16)) + 
      theme(axis.title=element_text(size=14)) + theme(legend.title = element_text(size=12)) 
   
   
-
-
-
-
 
 
 PurPlotsGain <- ggarrange(T_Gain , H_Gain, V_Gain, Pur_Stacked, ncol=2, nrow=2, labels = c( "A" ,"B", "C", "D"))
@@ -1141,9 +1141,9 @@ load("VOR_Healthy.Rda")
 load("Vor_ShortTerm.Rda")
 load("VOR_LongTerm.Rda")
 
-view(VOR_Healthy)
-view(Vor_ShortTerm)
-view(VOR_LongTerm)
+#view(VOR_Healthy)
+#view(Vor_ShortTerm)
+#view(VOR_LongTerm)
 
 VOR_Healthy$ID <- paste(VOR_Healthy$ID, 1, sep = "_")
 #VOR_Healthy <- VOR_Healthy[-c(7)]
@@ -1205,19 +1205,23 @@ stat.test <- compare_means(
 stat.test <- stat.test %>%
  mutate(y.position = c(6,6.5,7.1))
 
-test <-  expression("BCEA log"[10]* " (minarc"^2*")")
+test <-  expression("VOR BCEA log"[10]* " (minarc"^2*")")
 my_title <- parse(text=test)
 
 B_VOR <- ggplot(VORdf, aes(x = factor(TBI_Non, levels = c("Non", "Short", "Long")), y = BCEA_68_Log10, color = TBI_Non)) + 
   geom_boxplot(outlier.shape = NA)+ 
   geom_jitter(shape=16, position=position_jitter(0.2), alpha=0.4)+
-  scale_color_manual(values=c( "#D55E00", "#56B4E9", "#009E73")) +
+  scale_color_manual(values=ordCols) +
   scale_x_discrete(labels=c("Control","mTBI","PPCS")) +
   theme_classic() + theme(legend.position="none")+
   xlab(" ") + ylab(my_title)+
   #geom_hline(yintercept=0, linetype="dashed", color="#5f6061")+
   stat_pvalue_manual(stat.test, label = "p = {scales::pvalue(p.adj)}", size = 4) + theme(text = element_text(size = 16)) + 
      theme(axis.title=element_text(size=14)) 
+
+
+ML_Paper_DiffPlots <- ggarrange(B_VOR, T_Pur , V_Fix, V_Gain, Pur_Stacked, ncol=3, nrow=2, labels = c( "A" ,"B", "C", "D", "E"))
+ggsave("ML_Paper_DiffPlots.png", width = 30, height = 22, units = "cm")
 
 ```
 
