@@ -180,5 +180,5 @@ age
 
 view(Tot_Ages)
 #sex balanced?
-Sex <- prop.test(x=c(21, 9, 12), n = c(55, 20, 40))
+Sex <- prop.test(x=c(60, 55, 70), n = c(100, 100, 100))
 Sex
